@@ -320,8 +320,8 @@
 
   /* Sidebar compacto: simulador y supuestos plegables */
   fieldset.sim > legend { cursor: pointer; user-select: none; }
-  fieldset.sim > legend::after { content: "▾"; margin-left: 0.35rem; color: var(--caption); font-size: 0.8rem; }
-  fieldset.sim:not(.abierto) > legend::after { content: "▸"; }
+  fieldset.sim > legend::before { content: "▾"; display: inline-block; width: 1em; color: var(--caption); font-size: 0.8rem; }
+  fieldset.sim:not(.abierto) > legend::before { content: "▸"; }
   fieldset.sim > legend:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
   fieldset.sim:not(.abierto) .sim-grid { display: none; }
   fieldset.sim:not(.abierto) { padding-bottom: 0.4rem; }
@@ -663,8 +663,8 @@
     <fieldset class="sim" data-g="sean">
       <legend>Vapeadores <span>SEAN · 4,5 ml</span></legend>
       <div class="sim-grid">
-        <label for="otro-sean-esp">Específico<small>$ por unidad de 4,5 ml</small></label>
-        <div class="num"><span>$</span><input type="number" id="otro-sean-esp" data-g="sean" data-k="esp" min="0" step="100" inputmode="decimal"></div>
+        <label for="otro-sean-esp">Específico<small>$ por ml · unidad de 4,5 ml</small></label>
+        <div class="num"><span>$</span><input type="number" id="otro-sean-esp" data-g="sean" data-k="esp" min="0" step="50" inputmode="decimal"></div>
         <label for="otro-sean-adv">Ad valorem<small>% del PVP</small></label>
         <div class="num"><input type="number" id="otro-sean-adv" data-g="sean" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
         <label for="otro-sean-iva">IVA<small>incluido en el PVP</small></label>
@@ -701,7 +701,7 @@
       <div class="cell">
         <h4>2. Total de Impuestos por Unidad</h4>
         <div class="chart" id="g-otro-impuestos"></div>
-        <p class="caption"><strong>Nota:</strong> Incluye el ad valorem sobre el precio de venta al público (10 % en tabaco calentado y 30 % en vapeadores), el impuesto específico y el IVA del 19 % incluido en el precio. Tabaco calentado por paquete de 20 unidades; vapeadores por unidad de 4,5 ml.</p>
+        <p class="caption"><strong>Nota:</strong> Incluye el ad valorem sobre el precio de venta al público (10 % en tabaco calentado y 30 % en vapeadores), el impuesto específico ($7.823 por 20 unidades en tabaco calentado y $1.000/ml en vapeadores, es decir $4.500 por unidad de 4,5 ml) y el IVA del 19 % incluido en el precio. Tabaco calentado por paquete de 20 unidades; vapeadores por unidad de 4,5 ml.</p>
       </div>
       <div class="spacer"></div>
     </div>
@@ -1138,9 +1138,11 @@
   // =========================================================
   const OTROS = [
     { 'Categoría': 'Tabaco calentado', g: 'ptc', pvp27: 10166, advP0: 1017, espP0: 7823, ivaP0: 1623, totP0: 10463, ivaV: 1623 },
-    { 'Categoría': 'Vapeadores', g: 'sean', pvp27: 31500, advP0: 9450, espP0: 9000, ivaP0: 5029, totP0: 23479, ivaV: 5029 }
+    // Vapeador de 4,5 ml: específico PL 2027 = $1.000/ml × 4,5 ml = $4.500
+    { 'Categoría': 'Vapeadores', g: 'sean', factor: 4.5, pvp27: 31500, advP0: 9450, espP0: 4500, ivaP0: 5029, totP0: 18979, ivaV: 5029 }
   ];
-  const OTROS_ORIGINAL = { ptc: { esp: 7823, adv: 10, iva: 19 }, sean: { esp: 9000, adv: 30, iva: 19 } };
+  // Específico: PTC en $ por 20 unidades; SEAN en $ por ml (se multiplica por el contenido)
+  const OTROS_ORIGINAL = { ptc: { esp: 7823, adv: 10, iva: 19 }, sean: { esp: 1000, adv: 30, iva: 19 } };
   const NOMBRE_OTRO = { ptc: 'Tabaco calentado', sean: 'Vapeadores' };
   const OP = JSON.parse(JSON.stringify(OTROS_ORIGINAL));
   const otroMod = g => ['esp', 'adv', 'iva'].some(k => OP[g][k] !== OTROS_ORIGINAL[g][k]);
@@ -1151,7 +1153,7 @@
     const p = OP[d.g], o = OTROS_ORIGINAL[d.g], pvp = d.pvp27;
     const adv = p.adv === o.adv ? d.advP0 : pvp * p.adv / 100;
     const iva = p.iva === o.iva ? d.ivaP0 : pvp * p.iva / (100 + p.iva);
-    const esp = p.esp;
+    const esp = p.esp * (d.factor || 1);
     const tot = otroMod(d.g) ? adv + esp + iva : d.totP0;
     const totV = d.ivaV;
     return Object.assign({}, d, {
