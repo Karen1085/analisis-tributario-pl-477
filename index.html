@@ -272,14 +272,18 @@
   fieldset.sim { padding: 0.5rem 0.65rem 0.65rem; margin-bottom: 0.6rem; }
   fieldset.sim legend span { display: block; margin-left: 0; }
 
-  /* Indicadores resumen */
-  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-  .kpi { background: var(--bg); border: 1px solid var(--linea); border-radius: 10px; padding: 0.85rem 1rem; display: grid; gap: 0.3rem; min-width: 0; }
-  .kpi .lbl { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--caption); }
-  .kpi .val { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.5rem; font-variant-numeric: tabular-nums; }
-  .kpi .act { font-size: 1.1rem; font-weight: 600; color: var(--actual); }
-  .kpi .arrow { color: var(--caption); font-size: 1rem; }
-  .kpi .pl { font-size: 1.7rem; font-weight: 700; line-height: 1.1; color: var(--arena-texto); }
+  /* Indicadores: presión fiscal por producto */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .kpis-tit { grid-column: 1 / -1; margin: 0 0 -0.25rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--caption); }
+  .kpis-tit .k-act { color: var(--actual); }
+  .kpis-tit .k-pl { color: var(--arena-texto); }
+  .kpi { background: var(--bg); border: 1px solid var(--linea); border-radius: 10px; padding: 0.65rem 0.85rem; display: grid; gap: 0.2rem; min-width: 0; }
+  .kpi.sel { border-color: var(--arena); box-shadow: inset 0 0 0 1px var(--arena); }
+  .kpi .lbl { font-size: 0.85rem; font-weight: 700; color: var(--azul); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi .val { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.4rem; font-variant-numeric: tabular-nums; }
+  .kpi .act { font-size: 1rem; font-weight: 600; color: var(--actual); }
+  .kpi .arrow { color: var(--caption); font-size: 0.9rem; }
+  .kpi .pl { font-size: 1.45rem; font-weight: 700; line-height: 1.1; color: var(--arena-texto); }
   .kpi .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; }
   .kpi .chip { font-size: 0.76rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--gris); color: var(--caption); }
   .kpi .chip.up { background: #f6e4e2; color: var(--rojo); }
@@ -298,8 +302,34 @@
     .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
   }
   @media (max-width: 640px) {
-    .kpis { grid-template-columns: minmax(0, 1fr); }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+
+  /* Notas compactas: 2 líneas con "Ver más"; notas de tabla agrupadas */
+  .caption.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ver-mas { appearance: none; background: none; border: 0; padding: 0; margin-top: 0.15rem; font: 700 0.74rem var(--font); color: var(--arena-texto); cursor: pointer; }
+  .ver-mas:hover { text-decoration: underline; }
+  .ver-mas:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
+  details.notas { margin-top: 0.5rem; border-top: 1px solid var(--linea); padding-top: 0.4rem; }
+  details.notas > summary, details.supuestos > summary { cursor: pointer; list-style: none; }
+  details.notas > summary::-webkit-details-marker, details.supuestos > summary::-webkit-details-marker { display: none; }
+  details.notas > summary { font-size: 0.76rem; font-weight: 700; color: var(--arena-texto); }
+  details.notas > summary::before, details.supuestos > summary::before { content: "▸"; display: inline-block; width: 1em; transition: transform .15s; }
+  details[open].notas > summary::before, details[open].supuestos > summary::before { transform: rotate(90deg); }
+  details.notas > summary:focus-visible, details.supuestos > summary:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
+
+  /* Sidebar compacto: simulador y supuestos plegables */
+  fieldset.sim > legend { cursor: pointer; user-select: none; }
+  fieldset.sim > legend::after { content: "▾"; margin-left: 0.35rem; color: var(--caption); font-size: 0.8rem; }
+  fieldset.sim:not(.abierto) > legend::after { content: "▸"; }
+  fieldset.sim > legend:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
+  fieldset.sim:not(.abierto) .sim-grid { display: none; }
+  fieldset.sim:not(.abierto) { padding-bottom: 0.4rem; }
+  fieldset.sim .resumen { display: block; font-size: 0.74rem; font-weight: 600; color: var(--arena-texto); font-variant-numeric: tabular-nums; }
+  fieldset.sim.abierto .resumen { display: none; }
+  details.supuestos { margin-top: 1rem; }
+  details.supuestos > summary { font-size: 0.95rem; font-weight: 600; color: var(--azul); }
+  details.supuestos > :not(summary) { margin-top: 0.5rem; }
 </style>
 </head>
 <body>
@@ -797,6 +827,7 @@
     const tot = adv + esp + iva, fin = base + tot;
     return Object.assign({}, d, {
       Precio_Base_2027: base, PL_AdValorem_Tasa: p.adv / 100,
+      Actual_Presion_Fiscal: d.Actual_Total_Impuestos / d.Actual_Precio_Final,
       PL_AdValorem_Valor: adv, PL_Especifico_Valor: esp, PL_IVA_Valor: iva,
       PL_Total_Impuestos: tot, PL_Precio_Final: fin, PL_Presion_Fiscal: fin ? tot / fin : 0
     });
@@ -863,28 +894,22 @@
   // Indicadores resumen (tarjetas superiores)
   // Con varios productos: promedio simple; con uno: valores del producto
   // ---------------------------------------------------------
-  function kpis(id, plot, fmtP) {
-    if (!plot.length) return;
-    const n = plot.length;
-    const avg = f => plot.reduce((s, d) => s + f(d), 0) / n;
-    const chip = (txt, v) => '<span class="chip ' + (v > 0.05 ? 'up' : v < -0.05 ? 'down' : '') + '">' + txt + '</span>';
-    const signo = v => (v > 0.05 ? '+' : '');
-    const sub = n > 1 ? 'Promedio simple · ' + n + ' productos' : plot[0]['Categoría'];
-    const pa = avg(d => d.Actual_Presion_Fiscal), pp = avg(d => d.PL_Presion_Fiscal), dpp = (pp - pa) * 100;
-    const vt = avg(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100);
-    const vf = avg(d => (d.PL_Precio_Final / d.Actual_Precio_Final - 1) * 100);
-    const detalle = (ka, kp) => n > 1 ? sub : peso(plot[0][ka]) + ' → ' + peso(plot[0][kp]);
-    const tarjeta = (lbl, val, foot) => '<div class="kpi"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div><div class="foot">' + foot + '</div></div>';
+  // Una tarjeta por producto: presión fiscal Actual → PL y cambio en puntos porcentuales.
+  // El cambio se calcula con los valores redondeados que se muestran, para que siempre cuadre.
+  function kpis(id, todos, seleccion, fmtP) {
+    const dec = fmtP === pct ? 0 : 1;
+    const r = x => Math.round(x * 100 * Math.pow(10, dec)) / Math.pow(10, dec);
+    const tiles = todos.map(d => {
+      const a = r(d.Actual_Presion_Fiscal), p = r(d.PL_Presion_Fiscal), pp = Math.round((p - a) * 10) / 10;
+      const cls = pp > 0 ? 'up' : pp < 0 ? 'down' : '';
+      const sel = d['Categoría'] === seleccion ? ' sel' : '';
+      return '<div class="kpi' + sel + '"><div class="lbl">' + d['Categoría'] + '</div>' +
+        '<div class="val"><span class="act">' + fmtP(d.Actual_Presion_Fiscal) + '</span><span class="arrow">→</span>' +
+        '<span class="pl">' + fmtP(d.PL_Presion_Fiscal) + '</span></div>' +
+        '<div class="foot"><span class="chip ' + cls + '">' + (pp > 0 ? '+' : '') + num(pp, dec) + ' pp</span></div></div>';
+    });
     document.getElementById(id).innerHTML =
-      tarjeta('Presión fiscal · Actual → PL',
-        '<span class="act">' + fmtP(pa) + '</span><span class="arrow">→</span><span class="pl">' + fmtP(pp) + '</span>',
-        chip(signo(dpp) + num(dpp, 1) + ' pp', dpp) + '<span class="sub">' + sub + '</span>') +
-      tarjeta('Aumento de impuestos por unidad',
-        '<span class="pl">' + signo(vt) + num(vt, 1) + '%</span>',
-        '<span class="sub">' + detalle('Actual_Total_Impuestos', 'PL_Total_Impuestos') + '</span>') +
-      tarjeta('Aumento del precio de venta final',
-        '<span class="pl">' + signo(vf) + num(vf, 1) + '%</span>',
-        '<span class="sub">' + detalle('Actual_Precio_Final', 'PL_Precio_Final') + '</span>');
+      '<p class="kpis-tit">Presión fiscal por producto · <span class="k-act">Actual</span> → <span class="k-pl">PL Rescate</span></p>' + tiles.join('');
   }
 
   // ---------------------------------------------------------
@@ -964,7 +989,7 @@
     barras('g-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
       { showticklabels: false, range: [0, maxOf(datos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nombrePL);
     actualizarTabla();
-    kpis('kpi-licores', plot, pct);
+    kpis('kpi-licores', datos, s, pct);
     pintarControles();
 
     const unProducto = s !== 'Todos los productos';
@@ -1083,7 +1108,7 @@
     document.getElementById('cig-vista-tabla').hidden = una;
     if (una) renderCigSub();
     tablaCig();
-    kpis('kpi-cig', plot, pct);
+    kpis('kpi-cig', cigDatos, s, pct);
     controlesCig();
   }
 
@@ -1187,7 +1212,7 @@
     document.getElementById('otro-vista-cascada').hidden = !uno;
     document.getElementById('otro-vista-tabla').hidden = uno;
     if (uno) renderOtroSub();
-    kpis('kpi-otros', plot, pct1);
+    kpis('kpi-otros', otroDatos, s, pct1);
     controlesOtro();
   }
 
@@ -1249,6 +1274,70 @@
     next.focus(); next.click();
   });
   window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+  // ---------------------------------------------------------
+  // Compactar: notas de 2 líneas, notas de tabla agrupadas, simulador y supuestos plegables
+  // ---------------------------------------------------------
+  document.querySelectorAll('.cell').forEach(cell => {
+    const caps = [...cell.querySelectorAll('.caption')];
+    if (caps.length > 1) {
+      const det = document.createElement('details');
+      det.className = 'notas';
+      const sum = document.createElement('summary');
+      sum.textContent = 'Notas y fuentes de la tabla';
+      det.appendChild(sum);
+      caps[0].before(det);
+      caps.forEach(c => det.appendChild(c));
+    } else if (caps.length === 1 && caps[0].textContent.length > 160) {
+      const c = caps[0];
+      c.classList.add('clamp');
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ver-mas'; b.textContent = 'Ver más';
+      b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', () => {
+        const abrir = c.classList.contains('clamp');
+        c.classList.toggle('clamp', !abrir);
+        b.textContent = abrir ? 'Ver menos' : 'Ver más';
+        b.setAttribute('aria-expanded', String(abrir));
+      });
+      c.after(b);
+    }
+  });
+
+  function resumenSim(fs) {
+    const v = k => { const i = fs.querySelector('input[data-k="' + k + '"]'); return i ? i.value : ''; };
+    let r = fs.querySelector('.resumen');
+    if (!r) { r = document.createElement('span'); r.className = 'resumen'; fs.querySelector('legend').appendChild(r); }
+    r.textContent = 'Esp. $' + num(+v('esp') || 0, 2) + ' · Ad val. ' + v('adv') + '% · IVA ' + v('iva') + '%';
+  }
+  document.querySelectorAll('.sidebar').forEach(sb => {
+    const grupos = sb.querySelectorAll('fieldset.sim');
+    grupos.forEach(fs => {
+      const lg = fs.querySelector('legend');
+      lg.tabIndex = 0; lg.setAttribute('role', 'button');
+      if (grupos.length === 1) fs.classList.add('abierto');
+      lg.setAttribute('aria-expanded', String(fs.classList.contains('abierto')));
+      const alternar = () => { fs.classList.toggle('abierto'); lg.setAttribute('aria-expanded', String(fs.classList.contains('abierto'))); };
+      lg.addEventListener('click', alternar);
+      lg.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); } });
+      resumenSim(fs);
+    });
+    const h = [...sb.querySelectorAll('h3.cfg')].find(x => x.textContent.indexOf('Configuración') === 0);
+    if (h) {
+      const det = document.createElement('details');
+      det.className = 'supuestos';
+      const sum = document.createElement('summary');
+      sum.textContent = 'Supuestos del modelo y nota general';
+      det.appendChild(sum);
+      let n = h.nextElementSibling;
+      while (n && !n.matches('hr.sep')) { const sig = n.nextElementSibling; det.appendChild(n); n = sig; }
+      h.replaceWith(det);
+    }
+  });
+  document.addEventListener('input', e => { const fs = e.target.closest && e.target.closest('fieldset.sim'); if (fs) resumenSim(fs); });
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('.btn-reset')) setTimeout(() => document.querySelectorAll('fieldset.sim').forEach(resumenSim), 0);
+  });
 
   showTab(location.hash.slice(1));
 })();
