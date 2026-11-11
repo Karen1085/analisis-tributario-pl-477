@@ -318,6 +318,17 @@
   details[open].notas > summary::before, details[open].supuestos > summary::before { transform: rotate(90deg); }
   details.notas > summary:focus-visible, details.supuestos > summary:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
 
+  /* Tarjetas de presión fiscal compactas: todo en una línea bajo el nombre */
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; }
+  .kpis-tit { font-size: 0.7rem; margin-bottom: -0.15rem; }
+  .kpi { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.35rem; padding: 0.4rem 0.6rem; border-radius: 8px; }
+  .kpi .lbl { flex: 0 0 100%; font-size: 0.74rem; }
+  .kpi .val { gap: 0 0.25rem; }
+  .kpi .act { font-size: 0.8rem; }
+  .kpi .arrow { font-size: 0.75rem; }
+  .kpi .pl { font-size: 1.05rem; }
+  .kpi .chip { font-size: 0.66rem; padding: 0 0.35rem; }
+
   /* Notas siempre visibles, en letra pequeña */
   .cell .caption { font-size: 0.7rem; line-height: 1.45; }
   .cell .caption.tnote { font-size: 0.68rem; }
