@@ -318,6 +318,23 @@
   details[open].notas > summary::before, details[open].supuestos > summary::before { transform: rotate(90deg); }
   details.notas > summary:focus-visible, details.supuestos > summary:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
 
+  /* Notas siempre visibles, en letra pequeña */
+  .cell .caption { font-size: 0.7rem; line-height: 1.45; }
+  .cell .caption.tnote { font-size: 0.68rem; }
+
+  /* Subtítulo de cambio promedio, etiqueta de impuestos, leyenda y gráficos separados por contenido */
+  .h-sub { margin: -0.1rem 0 0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--arena-texto); }
+  .h-sub:empty { display: none; }
+  .tag-imp { display: inline-block; margin: 0 0 0.35rem; font-size: 0.7rem; color: var(--caption); background: var(--gris); border-radius: 4px; padding: 0.1rem 0.45rem; }
+  .leyenda { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.2rem 1rem; font-size: 0.76rem; color: var(--azul); margin-bottom: 0.3rem; }
+  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 0.35rem; vertical-align: -1px; }
+  .sw-act { background: var(--actual); }
+  .sw-pl { background: var(--arena); }
+  .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 1.7fr); gap: 0.75rem; }
+  .split.uno { grid-template-columns: minmax(0, 1fr); }
+  .sub { min-width: 0; }
+  .sub-tit { margin: 0; padding-bottom: 0.2rem; border-bottom: 1px solid var(--linea); font-size: 0.74rem; font-weight: 700; color: var(--caption); text-align: center; }
+
   /* Sidebar compacto: simulador y supuestos plegables */
   fieldset.sim > legend { cursor: pointer; user-select: none; }
   fieldset.sim > legend::before { content: "▾"; display: inline-block; width: 1em; color: var(--caption); font-size: 0.8rem; }
@@ -335,7 +352,7 @@
 <body>
 <header class="topbar">
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button class="tab" role="tab" id="t-licores" data-tab="licores" aria-controls="p-licores">Licores y cerveza</button>
+    <button class="tab" role="tab" id="t-licores" data-tab="licores" aria-controls="p-licores">Bebidas Alcohólicas</button>
     <button class="tab" role="tab" id="t-cigarrillos" data-tab="cigarrillos" aria-controls="p-cigarrillos">Cigarrillos</button>
     <button class="tab" role="tab" id="t-otros" data-tab="otros-productos" aria-controls="p-otros-productos">Otros productos</button>
   </nav>
@@ -410,23 +427,34 @@
 
     <div class="row">
       <div class="cell">
-        <h4>1. Presión Fiscal (%)</h4>
+        <h4>1. Presión fiscal (%)</h4>
+        <p class="h-sub" id="h-presion"></p>
         <div class="chart" id="g-presion"></div>
-        <p class="caption"><strong>Notas:</strong> La presión fiscal representa la participación de los impuestos en el precio final al consumidor. Se seleccionó una sola marca por categoría certificada por el DANE, por lo que los resultados son ilustrativos y no representan la presión fiscal de todos los productos, dada la diversidad de marcas, precios, presentaciones y grados alcoholimétricos.</p>
+        <p class="caption"><strong>Nota:</strong> La presión fiscal corresponde a la participación de los impuestos en el precio final al consumidor. Se utiliza una marca por categoría de licor, certificada por el DANE, por lo que los resultados son ilustrativos y no representan todos los productos, dada la diversidad de marcas, precios, presentaciones y grados alcoholimétricos.</p>
       </div>
       <div class="cell">
-        <h4>2. Total de Impuestos por Botella</h4>
-        <div class="chart" id="g-impuestos"></div>
-        <p class="caption"><strong>Nota:</strong> Incluye el impuesto al consumo y el IVA. En licores, vinos y aperitivos, el proyecto contempla un aumento del IVA del 5 % al 19 %. En cervezas, la legislación vigente aplica un impuesto del 48 % sobre el precio de venta al detallista, mientras que el proyecto establece un componente específico de 330 por grado y un ad valorem del 10 % sobre el precio de venta al público sin impuestos, certificado por el DANE. La botella de cerveza corresponde a 330 ml mientras que de licores es de 750 ml.</p>
+        <h4>2. Impuestos estimados por unidad de producto</h4>
+        <p class="h-sub" id="h-impuestos"></p>
+        <p class="tag-imp">Impuesto al consumo (ad valorem + específico) + IVA · pase el cursor sobre una barra para ver el detalle de cada impuesto</p>
+        <div class="leyenda"><span><i class="sw sw-act"></i>Legislación Vigente (2027)</span><span><i class="sw sw-pl"></i>PL 477 Rescate Económico (2027)</span></div>
+        <div class="split" id="split-impuestos">
+          <div class="sub" id="sub-impuestos-750"><p class="sub-tit">Licores, vinos y aperitivos · 750 ml</p><div class="chart" id="g-impuestos"></div></div>
+          <div class="sub" id="sub-impuestos-330"><p class="sub-tit">Cervezas · 330 ml</p><div class="chart" id="g-impuestos-330"></div></div>
+        </div>
+        <p class="caption"><strong>Nota:</strong> Incluye impuesto al consumo o producción e IVA. El proyecto aumenta el IVA de licores, vinos y aperitivos del 5% al 19%. En cervezas, sustituye el impuesto del 48% sobre el precio al detallista por $330 por grado alcoholimétrico y un ad valorem del 10% sobre el precio al público sin impuestos, certificado por el DANE. Se consideran presentaciones de 750 ml para licores y 330 ml para cervezas.</p>
       </div>
       <div class="spacer"></div>
     </div>
 
     <div class="row">
       <div class="cell">
-        <h4>3. Precio de Venta Final</h4>
-        <div class="chart" id="g-precio"></div>
-        <p class="caption"><strong>Nota:</strong> Se proyecta un incremento del 5 % en los precios antes de impuestos para 2027. Se supone que los precios base permanecen constantes entre escenarios y que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda. Precio por botella para licores y vinos de 750 ml y para cerveza de 330 ml.</p>
+        <h4>3. Precio final simulado al consumidor – 2027</h4>
+        <div class="leyenda"><span><i class="sw sw-act"></i>Legislación Vigente (2027)</span><span><i class="sw sw-pl"></i>PL 477 Rescate Económico (2027)</span></div>
+        <div class="split" id="split-precio">
+          <div class="sub" id="sub-precio-750"><p class="sub-tit">Licores, vinos y aperitivos · 750 ml</p><div class="chart" id="g-precio"></div></div>
+          <div class="sub" id="sub-precio-330"><p class="sub-tit">Cervezas · 330 ml</p><div class="chart" id="g-precio-330"></div></div>
+        </div>
+        <p class="caption"><strong>Nota:</strong> Se simulan precios para 2027 con un incremento del 5% en los precios antes de impuestos y un traslado del 100% de las variaciones tributarias al consumidor, sin cambios en los márgenes de comercialización ni en la demanda. Los valores son ilustrativos, no precios observados, y corresponden a presentaciones de 750 ml para licores y 330 ml para cervezas.</p>
       </div>
 
       <div class="cell cell-4">
@@ -434,8 +462,8 @@
         <div id="vista-cascada" hidden>
           <h4>4. Composición del Precio</h4>
           <div class="subtabs" role="tablist" aria-label="Escenario">
-            <button class="subtab" role="tab" id="st-actual" data-sub="actual" aria-selected="true">Legislación Actual</button>
-            <button class="subtab" role="tab" id="st-pl" data-sub="pl" aria-selected="false">PL Rescate Económico</button>
+            <button class="subtab" role="tab" id="st-actual" data-sub="actual" aria-selected="true">Legislación Vigente (2027)</button>
+            <button class="subtab" role="tab" id="st-pl" data-sub="pl" aria-selected="false">PL 477 Rescate Económico (2027)</button>
           </div>
           <div class="chart wf" id="g-wf-actual"></div>
           <div class="chart wf" id="g-wf-pl" hidden></div>
@@ -449,18 +477,18 @@
               <thead>
                 <tr>
                   <th rowspan="2" class="bg-prod">Producto</th>
-                  <th colspan="2" class="bg-actual">Legislación actual</th>
-                  <th colspan="2" class="bg-grey">Legislación 2027</th>
-                  <th colspan="2" class="bg-pl">PL Rescate Económico</th>
-                  <th colspan="2" class="bg-var">Variación vs 2027</th>
+                  <th colspan="2" class="bg-actual">Legislación Vigente (2026)</th>
+                  <th colspan="2" class="bg-grey">Legislación Vigente (2027)</th>
+                  <th colspan="2" class="bg-pl">PL 477 Rescate Económico (2027)</th>
+                  <th colspan="2" class="bg-var">Variación</th>
                 </tr>
                 <tr>
-                  <th class="bg-actual">Esp. 2026</th>
-                  <th class="bg-actual">Ad val. 2026</th>
-                  <th class="bg-grey">Esp. 2027</th>
-                  <th class="bg-grey">Ad val. 2027</th>
-                  <th class="bg-pl">Esp. 2027</th>
-                  <th class="bg-pl">Ad val. 2027</th>
+                  <th class="bg-actual">Esp.</th>
+                  <th class="bg-actual">Ad val.</th>
+                  <th class="bg-grey">Esp.</th>
+                  <th class="bg-grey">Ad val.</th>
+                  <th class="bg-pl">Esp.</th>
+                  <th class="bg-pl">Ad val.</th>
                   <th class="bg-var">Específico</th>
                   <th class="bg-var">Ad val.</th>
                 </tr>
@@ -494,18 +522,11 @@
                   <td class="text-pl">$330/gr</td><td class="text-pl">10%</td>
                   <td class="var-new">Nueva tarifa</td><td class="var-down">-10 pp</td>
                 </tr>
-                <tr>
-                  <td class="prod">Cigarrillos</td>
-                  <td class="bg-actual">$4.446/20u</td><td class="bg-actual">10%</td>
-                  <td class="bg-grey">$4.846/20u</td><td class="bg-grey">10%</td>
-                  <td class="text-pl">$7.823/20u</td><td class="text-pl">10%</td>
-                  <td class="var-up">+61,4%</td><td class="var-zero">0 pp</td>
-                </tr>
               </tbody>
             </table>
           </div>
-          <p class="caption tnote">*En cervezas, la legislación vigente establece una tarifa del 48% sobre el precio de venta al detallista. Para las cervezas nacionales, la base gravable es determinada por el productor y corresponde al precio facturado a los expendedores en la capital del departamento donde se ubique la fábrica. En el caso de las cervezas extranjeras, la base gravable se determina a partir del valor en aduana de la mercancía, incluidos los gravámenes arancelarios, al cual se adiciona un margen de comercialización equivalente al 30%. En ambos casos, se excluye de la base gravable el valor de los empaques y envases. Adicionalmente, la legislación establece que el impuesto pagado por las cervezas extranjeras no podrá ser inferior al promedio del impuesto causado por las cervezas producidas en Colombia, mientras que el proyecto establece un componente específico por grados alcoholimetricos según la presentación y un ad valorem del 10 % sobre el precio de venta al público sin impuestos, certificado por el DANE.</p>
-          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas vigentes en 2026, su proyección para 2027 y las propuestas en el PL de Rescate Económico. Para 2027 se supone un IPC del 5% y, en cigarrillos, una actualización del IPC más cuatro puntos porcentuales. Las tarifas específicas se expresan por grado alcoholimétrico y 750 ml para licores y vinos, por grado y 330 ml para cervezas y refajos, y por cajetilla de 20 unidades para cigarrillos. El proyecto propone aumentar la tarifa de estos últimos a $11.200 en 2028. En licores, vinos y aperitivos, el proyecto contempla un aumento del IVA del 5 % al 19 %. Las tarifas del componente específico para licores, vinos, aperitivos, cervezas y sifones, refajos y mezclas se actualizarán mediante IPC +4 pp en 2028 y la misma actualización para cigarrillos y similares a partir de 2029.</p>
+          <p class="caption tnote">*<strong>Cervezas:</strong> La legislación vigente aplica una tarifa del 48% sobre el precio al detallista. Para las nacionales, la base corresponde al precio facturado por el productor; para las importadas, al valor en aduana más aranceles y un margen del 30%. Ambas excluyen envases y empaques, y el impuesto de las importadas no puede ser inferior al promedio nacional. El proyecto establece un componente específico por grado alcoholimétrico y presentación, más un ad valorem del 10% sobre el precio al público sin impuestos, certificado por el DANE.</p>
+          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas de 2026, su proyección para 2027 (IPC supuesto del 5%) y las propuestas del PL de Rescate Económico. Las tarifas específicas se expresan por grado alcoholimétrico y 750 ml para licores y vinos, y por grado y 330 ml para cervezas y refajos. El proyecto aumenta el IVA de licores, vinos y aperitivos del 5% al 19% y establece la actualización de las tarifas específicas de bebidas alcohólicas mediante IPC + 4 puntos porcentuales desde 2028.</p>
         </div>
       </div>
     </div>
@@ -909,7 +930,7 @@
         '<div class="foot"><span class="chip ' + cls + '">' + (pp > 0 ? '+' : '') + num(pp, dec) + ' pp</span></div></div>';
     });
     document.getElementById(id).innerHTML =
-      '<p class="kpis-tit">Presión fiscal por producto · <span class="k-act">Actual</span> → <span class="k-pl">PL Rescate</span></p>' + tiles.join('');
+      '<p class="kpis-tit">Presión fiscal por producto · <span class="k-act">Legislación Vigente (2027)</span> → <span class="k-pl">PL 477 Rescate Económico (2027)</span></p>' + tiles.join('');
   }
 
   // ---------------------------------------------------------
@@ -932,18 +953,48 @@
     };
   }
 
-  function barras(el, plot, kAct, kPl, fmt, yaxis, nombrePL, nombreAct) {
+  // extra (opcional): { showlegend: false } oculta la leyenda; { detalle: true } muestra el desglose de impuestos al pasar el cursor
+  function barras(el, plot, kAct, kPl, fmt, yaxis, nombrePL, nombreAct, extra) {
+    extra = extra || {};
     const x = plot.map(d => d['Categoría']);
     const ancho = document.getElementById(el).clientWidth || 600;
     const TXT = ancho < 420 ? 10 : (fmt === pct ? 13 : 11);
-    Plotly.react(el, [
-      { type: 'bar', x, y: plot.map(d => d[kAct]), name: nombreAct || 'Actual', marker: { color: ACTUAL },
-        text: plot.map(d => fmt(d[kAct])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
-        textfont: { size: TXT, color: AZUL } },
-      { type: 'bar', x, y: plot.map(d => d[kPl]), name: nombrePL, marker: { color: ARENA },
-        text: plot.map(d => fmt(d[kPl])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
-        textfont: { size: TXT, color: ARENA, weight: 'bold' } }
-    ], barLayout(yaxis), CONFIG);
+    const tA = { type: 'bar', x, y: plot.map(d => d[kAct]), name: nombreAct || 'Actual', marker: { color: ACTUAL },
+      text: plot.map(d => fmt(d[kAct])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
+      textfont: { size: TXT, color: AZUL } };
+    const tP = { type: 'bar', x, y: plot.map(d => d[kPl]), name: nombrePL, marker: { color: ARENA },
+      text: plot.map(d => fmt(d[kPl])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
+      textfont: { size: TXT, color: ARENA, weight: 'bold' } };
+    if (extra.detalle) {
+      const desglose = pre => plot.map(d => 'Ad valorem: ' + peso(d[pre + '_AdValorem_Valor']) + '<br>Específico: ' + peso(d[pre + '_Especifico_Valor']) + '<br>IVA: ' + peso(d[pre + '_IVA_Valor']));
+      [[tA, 'Actual'], [tP, 'PL']].forEach(([t, pre]) => {
+        t.customdata = desglose(pre);
+        t.hovertemplate = '<b>%{x}</b><br>%{customdata}<br><b>Total: %{text}</b><extra>' + t.name + '</extra>';
+      });
+    }
+    const layout = barLayout(yaxis);
+    if (extra.showlegend === false) layout.showlegend = false;
+    Plotly.react(el, [tA, tP], layout, CONFIG);
+  }
+
+  // Gráficos de licores separados por contenido: 750 ml (licores, vinos, aperitivos) y 330 ml (cervezas)
+  function splitLicores(base, plot, kA, kP, nPL, nAct, detalle) {
+    const grupos = [['750', d => d.Volumen_ml !== 330, 'g-' + base], ['330', d => d.Volumen_ml === 330, 'g-' + base + '-330']];
+    const filas = grupos.map(([, f]) => plot.filter(f));
+    document.getElementById('split-' + base).classList.toggle('uno', filas.filter(r => r.length).length < 2);
+    grupos.forEach(([ml, f, el], i) => {
+      const cont = document.getElementById('sub-' + base + '-' + ml);
+      cont.hidden = !filas[i].length;
+      if (!filas[i].length) return;
+      const rango = Math.max(...datos.filter(f).flatMap(d => [d[kA], d[kP]])) * 1.2;
+      barras(el, filas[i], kA, kP, peso, { showticklabels: false, range: [0, rango] }, nPL, nAct, { showlegend: false, detalle });
+    });
+  }
+
+  // Texto de cambio promedio para los subtítulos de los gráficos
+  function textoCambio(v, unidad, n) {
+    const palabra = v >= 0 ? 'aumento' : 'disminución';
+    return (n > 1 ? 'En promedio, ' + (v >= 0 ? 'un aumento' : 'una disminución') : palabra.charAt(0).toUpperCase() + palabra.slice(1)) + ' de ' + num(Math.abs(v), 1) + unidad;
   }
 
   function cascada(el, p, pre, totalColor) {
@@ -980,14 +1031,19 @@
     const s = sel.value;
     datos = df.map(calcPL);
     const plot = s !== 'Todos los productos' ? datos.filter(d => d['Categoría'] === s) : datos.slice();
-    const nombrePL = esSimulado() ? 'PL Rescate (simulado)' : 'PL Rescate';
+    const nombrePL = 'PL 477 Rescate Económico (2027)' + (esSimulado() ? ' · simulado' : '');
+    const nombreAct = 'Legislación Vigente (2027)';
 
     barras('g-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct,
-      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(datos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nombrePL);
-    barras('g-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
-      { showticklabels: false, range: [0, maxOf(datos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nombrePL);
-    barras('g-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
-      { showticklabels: false, range: [0, maxOf(datos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nombrePL);
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(datos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nombrePL, nombreAct);
+    splitLicores('impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', nombrePL, nombreAct, true);
+    splitLicores('precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', nombrePL, nombreAct, false);
+
+    const n = plot.length, prom = f => plot.reduce((a, d) => a + f(d), 0) / n;
+    document.getElementById('h-presion').textContent =
+      textoCambio(prom(d => (d.PL_Presion_Fiscal - d.Actual_Presion_Fiscal) * 100), ' puntos porcentuales', n);
+    document.getElementById('h-impuestos').textContent =
+      textoCambio(prom(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100), '%', n);
     actualizarTabla();
     kpis('kpi-licores', datos, s, pct);
     pintarControles();
@@ -1280,32 +1336,6 @@
   // ---------------------------------------------------------
   // Compactar: notas de 2 líneas, notas de tabla agrupadas, simulador y supuestos plegables
   // ---------------------------------------------------------
-  document.querySelectorAll('.cell').forEach(cell => {
-    const caps = [...cell.querySelectorAll('.caption')];
-    if (caps.length > 1) {
-      const det = document.createElement('details');
-      det.className = 'notas';
-      const sum = document.createElement('summary');
-      sum.textContent = 'Notas y fuentes de la tabla';
-      det.appendChild(sum);
-      caps[0].before(det);
-      caps.forEach(c => det.appendChild(c));
-    } else if (caps.length === 1 && caps[0].textContent.length > 160) {
-      const c = caps[0];
-      c.classList.add('clamp');
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'ver-mas'; b.textContent = 'Ver más';
-      b.setAttribute('aria-expanded', 'false');
-      b.addEventListener('click', () => {
-        const abrir = c.classList.contains('clamp');
-        c.classList.toggle('clamp', !abrir);
-        b.textContent = abrir ? 'Ver menos' : 'Ver más';
-        b.setAttribute('aria-expanded', String(abrir));
-      });
-      c.after(b);
-    }
-  });
-
   function resumenSim(fs) {
     const v = k => { const i = fs.querySelector('input[data-k="' + k + '"]'); return i ? i.value : ''; };
     let r = fs.querySelector('.resumen');
