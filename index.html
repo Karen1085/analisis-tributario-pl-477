@@ -8,7 +8,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap">
 <style>
   /* Layout: réplica del tablero Streamlit — barra de pestañas arriba, sidebar de filtros a la izquierda, grilla 2.5 / 2.5 / 0.5 de gráficos. Modo claro fijo, como el original. */
   :root {
@@ -29,7 +29,7 @@
     --gris: #e8e8ef;
     --crema: #e7f1f6;
     --caption: #5f6177;
-    --font: "Source Sans 3", "Source Sans Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font: Calibri, Carlito, "Segoe UI", system-ui, -apple-system, sans-serif;
     color-scheme: light;
   }
   * { box-sizing: border-box; }
@@ -131,7 +131,7 @@
 
   /* Tabla de tarifas (estilos originales) */
   .table-scroll { overflow-x: auto; }
-  .tg { border-collapse: collapse; border-spacing: 0; width: 100%; text-align: center; font-family: sans-serif; font-size: 12px; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .tg { border-collapse: collapse; border-spacing: 0; width: 100%; text-align: center; font-family: var(--font); font-size: 12px; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
   .tg th { border: 1px solid var(--linea); padding: 6px; font-weight: bold; }
   .tg td { border: 1px solid var(--linea); padding: 5px; }
   .bg-actual { background-color: var(--actual); color: white; }
@@ -154,7 +154,7 @@
 
   /* Cigarrillos */
   .row-full { margin-top: 2rem; min-width: 0; max-width: 1200px; }
-  .row-full .caption.tnote { font-family: Arial, Helvetica, sans-serif; font-size: 0.82rem; margin-top: 0.5rem; }
+  .row-full .caption.tnote { font-family: var(--font); font-size: 0.82rem; margin-top: 0.5rem; }
   .tg.det { min-width: 900px; }
   .tg.det td:first-child { white-space: nowrap; }
   .subt { margin: -0.4rem 0 0.75rem; font-size: 0.9rem; color: var(--arena-texto); }
@@ -190,7 +190,7 @@
   .var-new { color: var(--caption); font-weight: bold; }
   .var-zero { color: var(--caption); font-weight: bold; }
   .caption { text-align: justify; hyphens: auto; }
-  .cell .caption.tnote { font-family: Arial, Helvetica, sans-serif; font-size: 0.82rem; }
+  .cell .caption.tnote { font-family: var(--font); font-size: 0.82rem; }
   .cell .caption.tnote + .caption.tnote { margin-top: 1.1rem; }
 
   /* ---------- Pestañas en preparación ---------- */
@@ -763,7 +763,6 @@
       </div>
       <div class="cell">
         <h4>2. Impuestos estimados por unidad de producto</h4>
-        <p class="h-sub" id="h-otro-impuestos"></p>
         <p class="sub-tit">Tabaco calentado: 20 unidades (5,5 g) · Vapeadores: unidad de 4,5 ml</p>
         <div class="chart" id="g-otro-impuestos"></div>
         <p class="caption"><strong>Nota:</strong> Incluye el ad valorem sobre el precio de venta al público (10 % en tabaco calentado y 30 % en vapeadores), el impuesto específico ($7.823 por 20 unidades en tabaco calentado y $1.000/ml en vapeadores, es decir $4.500 por unidad de 4,5 ml) y el IVA del 19 % incluido en el precio. Tabaco calentado por paquete de 20 unidades; vapeadores por unidad de 4,5 ml.</p>
@@ -867,7 +866,7 @@
   const df = ROWS.map(r => Object.fromEntries(COLS.map((c, i) => [c, r[i]])));
 
   const AZUL = '#232144', ACTUAL = '#232144', ARENA = '#3a86a6';
-  const FONT = '"Source Sans 3", "Source Sans Pro", system-ui, sans-serif';
+  const FONT = 'Calibri, Carlito, "Segoe UI", system-ui, sans-serif';
   const peso = x => '$' + Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   const pct = x => Math.round(x * 100) + '%';
   const maxOf = (rows, ...ks) => Math.max(...rows.flatMap(d => ks.map(k => d[k]))) || 1;
@@ -1323,8 +1322,6 @@
     const r1 = x => Math.round(x * 1000) / 10;
     document.getElementById('h-otro-presion').textContent =
       textoCambio(prom(d => r1(d.PL_Presion_Fiscal) - r1(d.Actual_Presion_Fiscal)), ' puntos porcentuales', n);
-    document.getElementById('h-otro-impuestos').textContent =
-      textoCambio(prom(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100), '%', n);
     const uno = s !== 'Todos los productos';
     document.getElementById('otro-vista-cascada').hidden = !uno;
     document.getElementById('otro-vista-tabla').hidden = uno;
