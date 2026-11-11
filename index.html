@@ -231,6 +231,71 @@
     .pending { padding: 1.25rem; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* =========================================================
+     Diseño tipo tablero: fondo gris claro, tarjetas blancas, grilla 2×2 y sidebar fijo
+     ========================================================= */
+  .layout { background: var(--sidebar); grid-template-columns: 270px minmax(0, 1fr); }
+  .sidebar {
+    background: var(--bg); border-right: 1px solid var(--linea);
+    position: sticky; top: calc(56px + env(safe-area-inset-top, 0px)); align-self: start;
+    max-height: calc(100vh - 56px - env(safe-area-inset-top, 0px)); overflow-y: auto;
+    padding-block: 1.25rem; padding-right: 1.1rem; padding-left: max(1.1rem, env(safe-area-inset-left, 0px));
+  }
+  .sidebar h3 { font-size: 1.05rem; }
+  .sidebar h3.cfg { font-size: 1.05rem; margin-top: 1.1rem; padding-bottom: 0.4rem; }
+  .sidebar .caption { font-size: 0.78rem; margin-top: 1rem; }
+  .check { font-size: 0.85rem; }
+  .hint { font-size: 0.78rem; }
+  .main {
+    padding-block: 1.1rem 2rem;
+    padding-left: 1.5rem; padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+    max-width: 1500px;
+  }
+  .main > h2 { font-size: 1.45rem; padding: 0 0 0.5rem; }
+  .main > hr { margin-bottom: 1rem; }
+  .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .row + .row { margin-top: 1rem; }
+  .row .spacer { display: none; }
+  .row .cell-4 { grid-column: auto; max-width: none; }
+  .cell { background: var(--bg); border: 1px solid var(--linea); border-radius: 10px; padding: 0.9rem 1rem 1rem; }
+  .cell h4 { font-size: 1rem; padding: 0 0 0.25rem; }
+  .cell .caption { font-size: 0.76rem; line-height: 1.45; margin-top: 0.5rem; }
+  .cell .caption.tnote { font-size: 0.74rem; }
+  .cell .caption.tnote + .caption.tnote { margin-top: 0.5rem; }
+  .tg { font-size: 12px; min-width: 520px; }
+  .tg th, .tg td { padding: 4px; }
+  .subt { font-size: 0.8rem; margin: 0 0 0.5rem; }
+  .sim-banner { margin-bottom: 1rem; }
+
+  /* Indicadores resumen */
+  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .kpi { background: var(--bg); border: 1px solid var(--linea); border-radius: 10px; padding: 0.85rem 1rem; display: grid; gap: 0.3rem; min-width: 0; }
+  .kpi .lbl { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--caption); }
+  .kpi .val { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.5rem; font-variant-numeric: tabular-nums; }
+  .kpi .act { font-size: 1.1rem; font-weight: 600; color: var(--actual); }
+  .kpi .arrow { color: var(--caption); font-size: 1rem; }
+  .kpi .pl { font-size: 1.7rem; font-weight: 700; line-height: 1.1; color: var(--arena-texto); }
+  .kpi .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; }
+  .kpi .chip { font-size: 0.76rem; font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--gris); color: var(--caption); }
+  .kpi .chip.up { background: #f6e4e2; color: var(--rojo); }
+  .kpi .chip.down { background: #e5f0e2; color: var(--verde); }
+  .kpi .sub { font-size: 0.75rem; color: var(--caption); }
+
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .sidebar {
+      position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--linea);
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    }
+    .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  }
+  @media (max-width: 640px) {
+    .kpis { grid-template-columns: minmax(0, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -307,6 +372,7 @@
       <p>Los valores del PL Rescate en gráficos y tabla usan las tarifas modificadas en el simulador: <span id="sim-resumen"></span>. Las notas describen el texto original del PL.</p>
       <button type="button" class="btn-reset" id="btn-reset-2">Restablecer</button>
     </div>
+    <div class="kpis" id="kpi-licores"></div>
 
     <div class="row">
       <div class="cell">
@@ -453,6 +519,7 @@
       <p>Los valores del PL Rescate en gráficos y tablas usan las tarifas modificadas en el simulador: <span id="cig-resumen"></span>. Las notas describen el texto original del PL.</p>
       <button type="button" class="btn-reset" id="cig-reset-2">Restablecer</button>
     </div>
+    <div class="kpis" id="kpi-cig"></div>
 
     <div class="row">
       <div class="cell">
@@ -589,6 +656,7 @@
       <p>Los valores del PL Rescate en los gráficos usan las tarifas modificadas en el simulador: <span id="otro-resumen"></span>. La tabla y las notas describen el texto original del PL.</p>
       <button type="button" class="btn-reset" id="otro-reset-2">Restablecer</button>
     </div>
+    <div class="kpis" id="kpi-otros"></div>
 
     <div class="row">
       <div class="cell">
@@ -788,6 +856,34 @@
   const CONFIG = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
 
   // ---------------------------------------------------------
+  // Indicadores resumen (tarjetas superiores)
+  // Con varios productos: promedio simple; con uno: valores del producto
+  // ---------------------------------------------------------
+  function kpis(id, plot, fmtP) {
+    if (!plot.length) return;
+    const n = plot.length;
+    const avg = f => plot.reduce((s, d) => s + f(d), 0) / n;
+    const chip = (txt, v) => '<span class="chip ' + (v > 0.05 ? 'up' : v < -0.05 ? 'down' : '') + '">' + txt + '</span>';
+    const signo = v => (v > 0.05 ? '+' : '');
+    const sub = n > 1 ? 'Promedio simple · ' + n + ' productos' : plot[0]['Categoría'];
+    const pa = avg(d => d.Actual_Presion_Fiscal), pp = avg(d => d.PL_Presion_Fiscal), dpp = (pp - pa) * 100;
+    const vt = avg(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100);
+    const vf = avg(d => (d.PL_Precio_Final / d.Actual_Precio_Final - 1) * 100);
+    const detalle = (ka, kp) => n > 1 ? sub : peso(plot[0][ka]) + ' → ' + peso(plot[0][kp]);
+    const tarjeta = (lbl, val, foot) => '<div class="kpi"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div><div class="foot">' + foot + '</div></div>';
+    document.getElementById(id).innerHTML =
+      tarjeta('Presión fiscal · Actual → PL',
+        '<span class="act">' + fmtP(pa) + '</span><span class="arrow">→</span><span class="pl">' + fmtP(pp) + '</span>',
+        chip(signo(dpp) + num(dpp, 1) + ' pp', dpp) + '<span class="sub">' + sub + '</span>') +
+      tarjeta('Aumento de impuestos por unidad',
+        '<span class="pl">' + signo(vt) + num(vt, 1) + '%</span>',
+        '<span class="sub">' + detalle('Actual_Total_Impuestos', 'PL_Total_Impuestos') + '</span>') +
+      tarjeta('Aumento del precio de venta final',
+        '<span class="pl">' + signo(vf) + num(vf, 1) + '%</span>',
+        '<span class="sub">' + detalle('Actual_Precio_Final', 'PL_Precio_Final') + '</span>');
+  }
+
+  // ---------------------------------------------------------
   // Selector de producto
   // ---------------------------------------------------------
   const sel = document.getElementById('sel-producto');
@@ -864,6 +960,7 @@
     barras('g-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
       { showticklabels: false, range: [0, maxOf(datos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nombrePL);
     actualizarTabla();
+    kpis('kpi-licores', plot, pct);
     pintarControles();
 
     const unProducto = s !== 'Todos los productos';
@@ -982,6 +1079,7 @@
     document.getElementById('cig-vista-tabla').hidden = una;
     if (una) renderCigSub();
     tablaCig();
+    kpis('kpi-cig', plot, pct);
     controlesCig();
   }
 
@@ -1085,6 +1183,7 @@
     document.getElementById('otro-vista-cascada').hidden = !uno;
     document.getElementById('otro-vista-tabla').hidden = uno;
     if (uno) renderOtroSub();
+    kpis('kpi-otros', plot, pct1);
     controlesOtro();
   }
 
