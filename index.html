@@ -756,12 +756,15 @@
 
     <div class="row">
       <div class="cell">
-        <h4>1. Presión Fiscal (%)</h4>
+        <h4>1. Presión fiscal (%)</h4>
+        <p class="h-sub" id="h-otro-presion"></p>
         <div class="chart" id="g-otro-presion"></div>
         <p class="caption"><strong>Notas:</strong> La presión fiscal representa el total de impuestos (ad valorem, específico e IVA) como porcentaje del precio de venta al público promedio proyectado para 2027. Tabaco calentado: presentación de 20 unidades (5,5 g) con precio certificado por el DANE. Vapeadores: marca representativa de 4,5 ml. En la legislación vigente solo se considera el IVA, ya que el PTC no está expresamente gravado y los sistemas SEAN no tienen tarifa específica vigente. El IVA del 19 % se aplica sobre el precio antes de IVA; como el precio de venta al público ya lo incluye, su participación en ese precio es de 19/119 = 16 %.</p>
       </div>
       <div class="cell">
-        <h4>2. Total de Impuestos por Unidad</h4>
+        <h4>2. Impuestos estimados por unidad de producto</h4>
+        <p class="h-sub" id="h-otro-impuestos"></p>
+        <p class="sub-tit">Tabaco calentado: 20 unidades (5,5 g) · Vapeadores: unidad de 4,5 ml</p>
         <div class="chart" id="g-otro-impuestos"></div>
         <p class="caption"><strong>Nota:</strong> Incluye el ad valorem sobre el precio de venta al público (10 % en tabaco calentado y 30 % en vapeadores), el impuesto específico ($7.823 por 20 unidades en tabaco calentado y $1.000/ml en vapeadores, es decir $4.500 por unidad de 4,5 ml) y el IVA del 19 % incluido en el precio. Tabaco calentado por paquete de 20 unidades; vapeadores por unidad de 4,5 ml.</p>
       </div>
@@ -770,7 +773,8 @@
 
     <div class="row">
       <div class="cell">
-        <h4>3. Precio de Venta Final</h4>
+        <h4>3. Precio final simulado al consumidor – 2027</h4>
+        <p class="sub-tit">Tabaco calentado: 20 unidades (5,5 g) · Vapeadores: unidad de 4,5 ml</p>
         <div class="chart" id="g-otro-precio"></div>
         <p class="caption"><strong>Nota:</strong> El ad valorem y el IVA se calculan sobre el precio de venta al público promedio proyectado para 2027. Se supone que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda.</p>
       </div>
@@ -779,8 +783,8 @@
         <div id="otro-vista-cascada" hidden>
           <h4>4. Composición del Precio</h4>
           <div class="subtabs" role="tablist" aria-label="Escenario">
-            <button class="subtab" role="tab" data-otrosub="actual" aria-selected="true">Legislación Actual</button>
-            <button class="subtab" role="tab" data-otrosub="pl" aria-selected="false">PL Rescate Económico</button>
+            <button class="subtab" role="tab" data-otrosub="actual" aria-selected="true">Legislación Vigente (2027)</button>
+            <button class="subtab" role="tab" data-otrosub="pl" aria-selected="false">PL 477 Rescate Económico (2027)</button>
           </div>
           <div class="chart wf" id="g-otro-wf-actual"></div>
           <div class="chart wf" id="g-otro-wf-pl" hidden></div>
@@ -792,18 +796,18 @@
               <thead>
                 <tr>
                   <th rowspan="2" class="bg-prod">Producto</th>
-                  <th colspan="2" class="bg-actual">Legislación actual</th>
-                  <th colspan="2" class="bg-grey">Legislación 2027</th>
-                  <th colspan="2" class="bg-pl">PL Rescate Económico</th>
-                  <th colspan="2" class="bg-var">Variación vs. legislación vigente</th>
+                  <th colspan="2" class="bg-actual">Legislación Vigente (2026)</th>
+                  <th colspan="2" class="bg-grey">Legislación Vigente (2027)</th>
+                  <th colspan="2" class="bg-pl">PL 477 Rescate Económico (2027)</th>
+                  <th colspan="2" class="bg-var">Variación</th>
                 </tr>
                 <tr>
-                  <th class="bg-actual">Esp. 2026</th>
-                  <th class="bg-actual">Ad val. 2026</th>
-                  <th class="bg-grey">Esp. 2027</th>
-                  <th class="bg-grey">Ad val. 2027</th>
-                  <th class="bg-pl">Esp. 2027</th>
-                  <th class="bg-pl">Ad val. 2027</th>
+                  <th class="bg-actual">Esp.</th>
+                  <th class="bg-actual">Ad val.</th>
+                  <th class="bg-grey">Esp.</th>
+                  <th class="bg-grey">Ad val.</th>
+                  <th class="bg-pl">Esp.</th>
+                  <th class="bg-pl">Ad val.</th>
                   <th class="bg-var">Esp.</th>
                   <th class="bg-var">Ad val.</th>
                 </tr>
@@ -833,7 +837,7 @@
               </tbody>
             </table>
           </div>
-          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas propuestas para 2027 y 2028 con la legislación ordinaria. El PTC no está expresamente gravado y los sistemas SEAN y SSSN no tienen tarifa específica vigente por mililitro. Tarifas específicas propuestas para 2028: PTC $11.200/20 u; SEAN y SSSN $2.000/ml, con el mismo ad valorem.</p>
+          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas propuestas para 2027 con la legislación ordinaria. El PTC no está expresamente gravado y los sistemas SEAN y SSSN no tienen tarifa específica vigente por mililitro. Tarifas específicas propuestas para 2028: PTC $11.200/20 u; SEAN y SSSN $2.000/ml, con el mismo ad valorem.</p>
           <p class="caption tnote">Los líquidos incluidos en vapeadores desechables o recargables se clasifican según contengan nicotina (SEAN) o no (SSSN); no constituyen una cuarta tarifa diferente.</p>
           <p class="caption tnote">Variación del específico propuesto entre 2027 y 2028: PTC +43,2%; SEAN y SSSN +100%. El ad valorem no cambia.</p>
           <p class="caption tnote">El proyecto prevé actualización del específico por IPC + 4 puntos porcentuales desde 2029. Los productos de nicotina oral sólidos (PNO) no tienen una tarifa autónoma claramente expresada en gramos o unidades en estas disposiciones.</p>
@@ -1307,13 +1311,20 @@
     otroDatos = OTROS.map(calcOtro);
     const s = selOtro.value;
     const plot = s !== 'Todos los productos' ? otroDatos.filter(d => d['Categoría'] === s) : otroDatos.slice();
-    const nPL = otroSim() ? 'PL Rescate (simulado)' : 'PL Rescate';
+    const nPL = 'PL 477 Rescate Económico (2027)' + (otroSim() ? ' · simulado' : '');
+    const nAct = 'Legislación Vigente (2027)';
     barras('g-otro-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct1,
-      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(otroDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL);
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(otroDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL, nAct);
     barras('g-otro-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
-      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL);
+      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL, nAct, { detalle: true });
     barras('g-otro-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
-      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL);
+      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL, nAct);
+    const n = plot.length, prom = f => plot.reduce((a, d) => a + f(d), 0) / n;
+    const r1 = x => Math.round(x * 1000) / 10;
+    document.getElementById('h-otro-presion').textContent =
+      textoCambio(prom(d => r1(d.PL_Presion_Fiscal) - r1(d.Actual_Presion_Fiscal)), ' puntos porcentuales', n);
+    document.getElementById('h-otro-impuestos').textContent =
+      textoCambio(prom(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100), '%', n);
     const uno = s !== 'Todos los productos';
     document.getElementById('otro-vista-cascada').hidden = !uno;
     document.getElementById('otro-vista-tabla').hidden = uno;
