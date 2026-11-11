@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Impacto Tributario</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* Layout: réplica del tablero Streamlit — barra de pestañas arriba, sidebar de filtros a la izquierda, grilla 2.5 / 2.5 / 0.5 de gráficos. Modo claro fijo, como el original. */
+  :root {
+    /* Paleta institucional FND: azul índigo (actual) y azul acero (PL Rescate); rojo, ocre y verde del mapa como acentos */
+    --azul: #232144;          /* Tinta: textos (índigo FND) */
+    --actual: #232144;        /* Legislación actual */
+    --arena: #3a86a6;         /* PL Rescate: azul acero FND */
+    --arena-texto: #2c7190;   /* PL Rescate en texto */
+    --rojo: #b8382f;          /* Variaciones al alza */
+    --verde: #4d8a43;         /* Variaciones a la baja */
+    --oro: #d4a050;
+    --naranja: #c8622f;
+    --salvia: #8db37f;
+    --celeste: #c6dce8;
+    --bg: #ffffff;
+    --sidebar: #f3f3f7;
+    --linea: #dedfe8;
+    --gris: #e8e8ef;
+    --crema: #e7f1f6;
+    --caption: #5f6177;
+    --font: "Source Sans 3", "Source Sans Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--azul);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg);
+  }
+  h2, h3, h4 { color: var(--azul); text-wrap: balance; margin: 0; }
+  h2 { font-size: 2rem; font-weight: 700; line-height: 1.2; padding: 0.75rem 0 1rem; }
+  h3 { font-size: 1.5rem; font-weight: 600; }
+  h4 { font-size: 1.25rem; font-weight: 600; padding: 0.5rem 0 0.75rem; }
+
+  /* ---------- Barra de pestañas principal ---------- */
+  .topbar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    background: var(--bg);
+    border-bottom: 1px solid var(--linea);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .tabs {
+    display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
+    max-width: 1600px; margin: 0 auto;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    appearance: none; background: none; border: 0; cursor: pointer;
+    font: 600 0.98rem var(--font); color: var(--caption);
+    padding: 0.95rem 1.1rem 0.85rem; white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .tab:hover { color: var(--azul); }
+  .tab[aria-selected="true"] { color: var(--azul); border-bottom-color: var(--arena); }
+  .tab:focus-visible { outline: 2px solid var(--arena); outline-offset: -2px; border-radius: 4px; }
+
+  /* ---------- Layout con sidebar ---------- */
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: calc(100vh - 54px); }
+  .sidebar {
+    background: var(--sidebar);
+    padding-block: 2rem;
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: 1.5rem;
+  }
+  .sidebar h3 { font-size: 1.35rem; padding-bottom: 0.4rem; }
+  .sidebar hr { border: 0; border-top: 1px solid var(--linea); margin: 0 0 1rem; }
+  .sidebar hr.sep { border-top: 2px solid rgba(49, 51, 63, 0.1); margin: 1.25rem 0 0; }
+  .sidebar h3.cfg { font-size: 1.35rem; margin-top: 1.5rem; padding-bottom: 0.6rem; }
+  label.field { display: block; font-size: 0.875rem; margin-bottom: 0.35rem; }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: ""; position: absolute; right: 14px; top: 50%; width: 8px; height: 8px;
+    border-right: 2px solid var(--azul); border-bottom: 2px solid var(--azul);
+    transform: translateY(-70%) rotate(45deg); pointer-events: none;
+  }
+  select {
+    width: 100%; appearance: none; -webkit-appearance: none;
+    font: 400 1rem var(--font); color: var(--azul);
+    background: var(--bg); border: 1px solid #d5d7de; border-radius: 8px;
+    padding: 0.55rem 2.2rem 0.55rem 0.75rem; cursor: pointer;
+  }
+  select:focus-visible { outline: 2px solid var(--arena); outline-offset: 1px; }
+  .check { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 1rem; margin-bottom: 0.5rem; opacity: 0.55; }
+  .check input { margin: 0.3rem 0 0; accent-color: var(--azul); }
+  .caption { color: var(--caption); font-size: 0.875rem; line-height: 1.5; margin: 0; }
+  .caption strong { color: var(--caption); font-weight: 700; }
+  .sidebar .caption { margin-top: 1.5rem; }
+
+  .main {
+    padding-block: 1.5rem 3rem;
+    padding-left: 3rem;
+    padding-right: max(3rem, env(safe-area-inset-right, 0px));
+    min-width: 0;
+  }
+  .main > hr { border: 0; border-top: 1px solid var(--linea); margin: 0 0 1.25rem; }
+  .row { display: grid; grid-template-columns: 2.5fr 2.5fr 0.5fr; gap: 3rem; }
+  .row + .row { margin-top: 1.5rem; }
+  .cell { min-width: 0; }
+  .chart { width: 100%; height: 300px; }
+  .chart.wf { height: 250px; }
+  .cell .caption { margin-top: 0.75rem; }
+
+  /* Pestañas internas de la cascada */
+  .subtabs { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--linea); margin-bottom: 0.75rem; }
+  .subtab {
+    appearance: none; background: none; border: 0; cursor: pointer;
+    font: 400 0.95rem var(--font); color: var(--azul);
+    padding: 0.4rem 0 0.55rem; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .subtab[aria-selected="true"] { border-bottom-color: var(--azul); font-weight: 600; }
+  .subtab:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
+
+  /* Tabla de tarifas (estilos originales) */
+  .table-scroll { overflow-x: auto; }
+  .tg { border-collapse: collapse; border-spacing: 0; width: 100%; text-align: center; font-family: sans-serif; font-size: 12px; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .tg th { border: 1px solid var(--linea); padding: 6px; font-weight: bold; }
+  .tg td { border: 1px solid var(--linea); padding: 5px; }
+  .bg-actual { background-color: var(--actual); color: white; }
+  .bg-grey { background-color: var(--gris); color: var(--azul); }
+  .bg-pl { background-color: var(--crema); color: var(--azul); }
+  .text-pl { color: var(--arena-texto); font-weight: bold; }
+  .tg .prod { color: var(--azul); font-weight: bold; }
+
+  /* Barra superior institucional: índigo con franja de colores del mapa */
+  body::before { background: var(--actual); }
+  .topbar { background: var(--actual); border-bottom: 0; }
+  .topbar::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+    background: linear-gradient(90deg, var(--rojo) 0 16.66%, var(--naranja) 0 33.33%, var(--oro) 0 50%, var(--salvia) 0 66.66%, var(--celeste) 0 83.33%, var(--arena) 0);
+  }
+  .tab { color: rgba(255, 255, 255, 0.62); padding-bottom: 1.05rem; }
+  .tab:hover { color: #ffffff; }
+  .tab[aria-selected="true"] { color: #ffffff; border-bottom-color: var(--oro); }
+  .tab:focus-visible { outline-color: var(--oro); }
+
+  /* Cigarrillos */
+  .row-full { margin-top: 2rem; min-width: 0; max-width: 1200px; }
+  .row-full .caption.tnote { font-family: Arial, Helvetica, sans-serif; font-size: 0.82rem; margin-top: 0.5rem; }
+  .tg.det { min-width: 900px; }
+  .tg.det td:first-child { white-space: nowrap; }
+  .subt { margin: -0.4rem 0 0.75rem; font-size: 0.9rem; color: var(--arena-texto); }
+
+  /* Simulador */
+  .hint { font-size: 0.85rem; color: var(--caption); margin: 0 0 0.75rem; }
+  fieldset.sim { border: 1px solid var(--linea); border-radius: 8px; background: var(--bg); margin: 0 0 0.75rem; padding: 0.6rem 0.75rem 0.75rem; min-width: 0; }
+  fieldset.sim legend { font-weight: 700; font-size: 0.95rem; padding: 0 0.3rem; }
+  fieldset.sim legend span { font-weight: 400; font-size: 0.78rem; color: var(--caption); margin-left: 0.3rem; }
+  fieldset.sim.mod { border-color: var(--arena); background: var(--crema); }
+  .sim-grid { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem; gap: 0.45rem 0.6rem; align-items: center; }
+  .sim-grid label { font-size: 0.88rem; line-height: 1.2; }
+  .sim-grid label small { display: block; font-size: 0.72rem; color: var(--caption); }
+  .num { display: flex; align-items: center; border: 1px solid #d5d7de; border-radius: 6px; background: var(--bg); padding: 0 0.5rem; }
+  .num:focus-within { outline: 2px solid var(--arena); outline-offset: 1px; }
+  .num span { color: var(--caption); font-size: 0.85rem; }
+  .num input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; font: 600 0.95rem var(--font); color: var(--azul); padding: 0.35rem 0.25rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .num input.cambiado { color: var(--arena-texto); }
+  .btn-reset { appearance: none; font: 600 0.88rem var(--font); color: var(--azul); background: var(--bg); border: 1px solid var(--azul); border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; }
+  .btn-reset:hover:not(:disabled) { background: var(--azul); color: white; }
+  .btn-reset:disabled { opacity: 0.4; cursor: default; }
+  .btn-reset:focus-visible { outline: 2px solid var(--arena); outline-offset: 2px; }
+  .sim-banner { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; background: var(--crema); border: 1px solid var(--arena); border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1.25rem; }
+  .sim-banner p { margin: 0; flex: 1 1 320px; font-size: 0.9rem; }
+  .sim-banner .estado { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--arena-texto); }
+  .tg { font-size: 13px; min-width: 560px; }
+  .row .cell-4 { grid-column: span 2; max-width: 820px; }
+  @media (max-width: 1100px) { .row .cell-4 { grid-column: auto; } }
+  .bg-prod { background-color: white; color: var(--azul); }
+  .bg-var { background-color: #ededed; color: var(--azul); }
+  .var-up { color: var(--rojo); font-weight: bold; }
+  .var-down { color: var(--verde); font-weight: bold; }
+  .var-new { color: var(--caption); font-weight: bold; }
+  .var-zero { color: var(--caption); font-weight: bold; }
+  .caption { text-align: justify; hyphens: auto; }
+  .cell .caption.tnote { font-family: Arial, Helvetica, sans-serif; font-size: 0.82rem; }
+  .cell .caption.tnote + .caption.tnote { margin-top: 1.1rem; }
+
+  /* ---------- Pestañas en preparación ---------- */
+  .solo {
+    max-width: 1600px; margin: 0 auto;
+    padding-block: 1.5rem 4rem;
+    padding-left: max(3rem, env(safe-area-inset-left, 0px));
+    padding-right: max(3rem, env(safe-area-inset-right, 0px));
+  }
+  .solo > hr { border: 0; border-top: 1px solid var(--linea); margin: 0 0 1.5rem; }
+  .pending {
+    border: 1px dashed #cfd2dc; border-radius: 10px; background: var(--sidebar);
+    padding: 2rem; display: grid; gap: 1rem; max-width: 760px;
+  }
+  .pending .estado {
+    justify-self: start; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--arena-texto); background: var(--crema); border: 1px solid var(--arena);
+    border-radius: 999px; padding: 0.2rem 0.7rem;
+  }
+  .pending p { margin: 0; max-width: 65ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; }
+  .chips li {
+    background: var(--bg); border: 1px solid var(--linea); border-radius: 6px;
+    padding: 0.4rem 0.75rem; font-weight: 600; font-size: 0.95rem;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1100px) {
+    .row { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+    .row .spacer { display: none; }
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 1.25rem; }
+    .main, .solo { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    .row { grid-template-columns: minmax(0, 1fr); }
+    h2 { font-size: 1.6rem; }
+    .pending { padding: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button class="tab" role="tab" id="t-licores" data-tab="licores" aria-controls="p-licores">Licores y cerveza</button>
+    <button class="tab" role="tab" id="t-cigarrillos" data-tab="cigarrillos" aria-controls="p-cigarrillos">Cigarrillos</button>
+    <button class="tab" role="tab" id="t-otros" data-tab="otros-productos" aria-controls="p-otros-productos">Otros productos</button>
+  </nav>
+</header>
+
+<!-- =============== PESTAÑA 1: LICORES Y CERVEZA =============== -->
+<section class="layout" id="p-licores" role="tabpanel" aria-labelledby="t-licores">
+  <aside class="sidebar">
+    <h3>Filtros de Análisis</h3>
+    <hr>
+    <label class="field" for="sel-producto">Seleccione el Producto:</label>
+    <div class="select-wrap"><select id="sel-producto"></select></div>
+
+    <h3 class="cfg">Simulador de tarifas</h3>
+    <p class="hint">Modifique las tarifas del PL Rescate; los gráficos y la tabla se recalculan al instante.</p>
+
+    <fieldset class="sim" data-g="licores">
+      <legend>Licores <span>Aguardiente, ron, whisky</span></legend>
+      <div class="sim-grid">
+        <label for="sim-licores-esp">Específico<small>$ por grado · 750 ml</small></label>
+        <div class="num"><span>$</span><input type="number" id="sim-licores-esp" data-g="licores" data-k="esp" min="0" step="10" inputmode="decimal"></div>
+        <label for="sim-licores-adv">Ad valorem</label>
+        <div class="num"><input type="number" id="sim-licores-adv" data-g="licores" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="sim-licores-iva">IVA</label>
+        <div class="num"><input type="number" id="sim-licores-iva" data-g="licores" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="sim" data-g="vinos">
+      <legend>Vinos y aperitivos <span>Vino, aperitivo</span></legend>
+      <div class="sim-grid">
+        <label for="sim-vinos-esp">Específico<small>$ por grado · 750 ml</small></label>
+        <div class="num"><span>$</span><input type="number" id="sim-vinos-esp" data-g="vinos" data-k="esp" min="0" step="10" inputmode="decimal"></div>
+        <label for="sim-vinos-adv">Ad valorem</label>
+        <div class="num"><input type="number" id="sim-vinos-adv" data-g="vinos" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="sim-vinos-iva">IVA</label>
+        <div class="num"><input type="number" id="sim-vinos-iva" data-g="vinos" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="sim" data-g="cerveza">
+      <legend>Cervezas y refajos <span>Cerveza</span></legend>
+      <div class="sim-grid">
+        <label for="sim-cerveza-esp">Específico<small>$ por grado · 330 ml</small></label>
+        <div class="num"><span>$</span><input type="number" id="sim-cerveza-esp" data-g="cerveza" data-k="esp" min="0" step="10" inputmode="decimal"></div>
+        <label for="sim-cerveza-adv">Ad valorem</label>
+        <div class="num"><input type="number" id="sim-cerveza-adv" data-g="cerveza" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="sim-cerveza-iva">IVA</label>
+        <div class="num"><input type="number" id="sim-cerveza-iva" data-g="cerveza" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <button type="button" class="btn-reset" id="btn-reset" disabled>Restablecer tarifas del PL</button>
+
+    <h3 class="cfg">Configuración del Modelo</h3>
+    <label class="check"><input type="checkbox" id="chk-precios" checked disabled> Mantener precios base constantes (2027)</label>
+    <label class="check"><input type="checkbox" id="chk-traslado" checked disabled> Traslado 100% al consumidor</label>
+
+    <p class="caption"><strong>Nota general:</strong> Los resultados corresponden a un ejercicio ilustrativo para productos seleccionados y no constituyen estimaciones representativas del mercado nacional de bebidas alcohólicas.</p>
+    <hr class="sep">
+  </aside>
+
+  <div class="main">
+    <h2>Análisis del Proyecto de Ley de Rescate Económico en Bebidas</h2>
+    <hr>
+    <div class="sim-banner" id="sim-banner" hidden>
+      <span class="estado">Escenario simulado</span>
+      <p>Los valores del PL Rescate en gráficos y tabla usan las tarifas modificadas en el simulador: <span id="sim-resumen"></span>. Las notas describen el texto original del PL.</p>
+      <button type="button" class="btn-reset" id="btn-reset-2">Restablecer</button>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>1. Presión Fiscal (%)</h4>
+        <div class="chart" id="g-presion"></div>
+        <p class="caption"><strong>Notas:</strong> La presión fiscal representa la participación de los impuestos en el precio final al consumidor. Se seleccionó una sola marca por categoría certificada por el DANE, por lo que los resultados son ilustrativos y no representan la presión fiscal de todos los productos, dada la diversidad de marcas, precios, presentaciones y grados alcoholimétricos.</p>
+      </div>
+      <div class="cell">
+        <h4>2. Total de Impuestos por Botella</h4>
+        <div class="chart" id="g-impuestos"></div>
+        <p class="caption"><strong>Nota:</strong> Incluye el impuesto al consumo y el IVA. En licores, vinos y aperitivos, el proyecto contempla un aumento del IVA del 5 % al 19 %. En cervezas, la legislación vigente aplica un impuesto del 48 % sobre el precio de venta al detallista, mientras que el proyecto establece un componente específico de 330 por grado y un ad valorem del 10 % sobre el precio de venta al público sin impuestos, certificado por el DANE. La botella de cerveza corresponde a 330 ml mientras que de licores es de 750 ml.</p>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>3. Precio de Venta Final</h4>
+        <div class="chart" id="g-precio"></div>
+        <p class="caption"><strong>Nota:</strong> Se proyecta un incremento del 5 % en los precios antes de impuestos para 2027. Se supone que los precios base permanecen constantes entre escenarios y que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda. Precio por botella para licores y vinos de 750 ml y para cerveza de 330 ml.</p>
+      </div>
+
+      <div class="cell cell-4">
+        <!-- Vista: un producto seleccionado -->
+        <div id="vista-cascada" hidden>
+          <h4>4. Composición del Precio</h4>
+          <div class="subtabs" role="tablist" aria-label="Escenario">
+            <button class="subtab" role="tab" id="st-actual" data-sub="actual" aria-selected="true">Legislación Actual</button>
+            <button class="subtab" role="tab" id="st-pl" data-sub="pl" aria-selected="false">PL Rescate Económico</button>
+          </div>
+          <div class="chart wf" id="g-wf-actual"></div>
+          <div class="chart wf" id="g-wf-pl" hidden></div>
+        </div>
+
+        <!-- Vista: todos los productos -->
+        <div id="vista-tabla">
+          <h4>4. Tabla Resumen de Tarifas</h4>
+          <div class="table-scroll">
+            <table class="tg">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="bg-prod">Producto</th>
+                  <th colspan="2" class="bg-actual">Legislación actual</th>
+                  <th colspan="2" class="bg-grey">Legislación 2027</th>
+                  <th colspan="2" class="bg-pl">PL Rescate Económico</th>
+                  <th colspan="2" class="bg-var">Variación vs 2027</th>
+                </tr>
+                <tr>
+                  <th class="bg-actual">Esp. 2026</th>
+                  <th class="bg-actual">Ad val. 2026</th>
+                  <th class="bg-grey">Esp. 2027</th>
+                  <th class="bg-grey">Ad val. 2027</th>
+                  <th class="bg-pl">Esp. 2027</th>
+                  <th class="bg-pl">Ad val. 2027</th>
+                  <th class="bg-var">Específico</th>
+                  <th class="bg-var">Ad val.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="prod">Licores</td>
+                  <td class="bg-actual">$360/gr</td><td class="bg-actual">25%</td>
+                  <td class="bg-grey">$378/gr</td><td class="bg-grey">25%</td>
+                  <td class="text-pl">$750/gr</td><td class="text-pl">35%</td>
+                  <td class="var-up">+98,4%</td><td class="var-up">+10 pp</td>
+                </tr>
+                <tr>
+                  <td class="prod">Vinos</td>
+                  <td class="bg-actual">$243/gr</td><td class="bg-actual">20%</td>
+                  <td class="bg-grey">$255/gr</td><td class="bg-grey">20%</td>
+                  <td class="text-pl">$750/gr</td><td class="text-pl">35%</td>
+                  <td class="var-up">+194,1%</td><td class="var-up">+15 pp</td>
+                </tr>
+                <tr>
+                  <td class="prod">Cervezas</td>
+                  <td class="bg-actual">N/A</td><td class="bg-actual">48%*</td>
+                  <td class="bg-grey">N/A</td><td class="bg-grey">48%*</td>
+                  <td class="text-pl">$330/gr</td><td class="text-pl">10%</td>
+                  <td class="var-new">Nueva tarifa</td><td class="var-down">-38 pp</td>
+                </tr>
+                <tr>
+                  <td class="prod">Refajos</td>
+                  <td class="bg-actual">N/A</td><td class="bg-actual">20%*</td>
+                  <td class="bg-grey">N/A</td><td class="bg-grey">20%*</td>
+                  <td class="text-pl">$330/gr</td><td class="text-pl">10%</td>
+                  <td class="var-new">Nueva tarifa</td><td class="var-down">-10 pp</td>
+                </tr>
+                <tr>
+                  <td class="prod">Cigarrillos</td>
+                  <td class="bg-actual">$4.446/20u</td><td class="bg-actual">10%</td>
+                  <td class="bg-grey">$4.846/20u</td><td class="bg-grey">10%</td>
+                  <td class="text-pl">$7.823/20u</td><td class="text-pl">10%</td>
+                  <td class="var-up">+61,4%</td><td class="var-zero">0 pp</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption tnote">*En cervezas, la legislación vigente establece una tarifa del 48% sobre el precio de venta al detallista. Para las cervezas nacionales, la base gravable es determinada por el productor y corresponde al precio facturado a los expendedores en la capital del departamento donde se ubique la fábrica. En el caso de las cervezas extranjeras, la base gravable se determina a partir del valor en aduana de la mercancía, incluidos los gravámenes arancelarios, al cual se adiciona un margen de comercialización equivalente al 30%. En ambos casos, se excluye de la base gravable el valor de los empaques y envases. Adicionalmente, la legislación establece que el impuesto pagado por las cervezas extranjeras no podrá ser inferior al promedio del impuesto causado por las cervezas producidas en Colombia, mientras que el proyecto establece un componente específico por grados alcoholimetricos según la presentación y un ad valorem del 10 % sobre el precio de venta al público sin impuestos, certificado por el DANE.</p>
+          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas vigentes en 2026, su proyección para 2027 y las propuestas en el PL de Rescate Económico. Para 2027 se supone un IPC del 5% y, en cigarrillos, una actualización del IPC más cuatro puntos porcentuales. Las tarifas específicas se expresan por grado alcoholimétrico y 750 ml para licores y vinos, por grado y 330 ml para cervezas y refajos, y por cajetilla de 20 unidades para cigarrillos. El proyecto propone aumentar la tarifa de estos últimos a $11.200 en 2028. En licores, vinos y aperitivos, el proyecto contempla un aumento del IVA del 5 % al 19 %. Las tarifas del componente específico para licores, vinos, aperitivos, cervezas y sifones, refajos y mezclas se actualizarán mediante IPC +4 pp en 2028 y la misma actualización para cigarrillos y similares a partir de 2029.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== PESTAÑA 2: CIGARRILLOS =============== -->
+<section class="layout" id="p-cigarrillos" role="tabpanel" aria-labelledby="t-cigarrillos" hidden>
+  <aside class="sidebar">
+    <h3>Filtros de Análisis</h3>
+    <hr>
+    <label class="field" for="sel-gama">Seleccione la gama:</label>
+    <div class="select-wrap"><select id="sel-gama"></select></div>
+
+    <h3 class="cfg">Simulador de tarifas</h3>
+    <p class="hint">Modifique las tarifas del PL Rescate; los gráficos y las tablas se recalculan al instante.</p>
+
+    <fieldset class="sim" id="fs-cig">
+      <legend>Cigarrillos <span>Cajetilla de 20 unidades</span></legend>
+      <div class="sim-grid">
+        <label for="cig-esp">Específico<small>$ por cajetilla · 20 u</small></label>
+        <div class="num"><span>$</span><input type="number" id="cig-esp" data-k="esp" min="0" step="100" inputmode="decimal"></div>
+        <label for="cig-adv">Ad valorem<small>% del PVP</small></label>
+        <div class="num"><input type="number" id="cig-adv" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="cig-iva">IVA<small>incluido en el PVP</small></label>
+        <div class="num"><input type="number" id="cig-iva" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <button type="button" class="btn-reset" id="cig-reset" disabled>Restablecer tarifas del PL</button>
+
+    <h3 class="cfg">Configuración del Modelo</h3>
+    <label class="check"><input type="checkbox" id="cig-chk-pvp" checked disabled> PVP 2027 = PVP DANE 2026 + IPC 5%</label>
+    <label class="check"><input type="checkbox" id="cig-chk-esp" checked disabled> Específico vigente 2027 con IPC 5% + 4 pp</label>
+
+    <p class="caption"><strong>Nota general:</strong> Los resultados corresponden a un ejercicio ilustrativo con precios promedio por gama y no constituyen estimaciones representativas de todas las marcas del mercado nacional de cigarrillos.</p>
+    <hr class="sep">
+  </aside>
+
+  <div class="main">
+    <h2>Análisis del Proyecto de Ley de Rescate Económico en Cigarrillos</h2>
+    <hr>
+    <div class="sim-banner" id="cig-banner" hidden>
+      <span class="estado">Escenario simulado</span>
+      <p>Los valores del PL Rescate en gráficos y tablas usan las tarifas modificadas en el simulador: <span id="cig-resumen"></span>. Las notas describen el texto original del PL.</p>
+      <button type="button" class="btn-reset" id="cig-reset-2">Restablecer</button>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>1. Presión Fiscal (%)</h4>
+        <div class="chart" id="g-cig-presion"></div>
+        <p class="caption"><strong>Notas:</strong> La presión fiscal representa el total de impuestos (ad valorem, específico e IVA) como porcentaje del precio de venta al público promedio proyectado para 2027 en cada gama, certificado por el DANE (Resolución 0800 de 2026). Un valor superior a 100 % indica que los impuestos superarían el precio de venta proyectado. Los resultados son ilustrativos y no representan la presión fiscal de todas las marcas y presentaciones.</p>
+      </div>
+      <div class="cell">
+        <h4>2. Total de Impuestos por Cajetilla</h4>
+        <div class="chart" id="g-cig-impuestos"></div>
+        <p class="caption"><strong>Nota:</strong> Incluye el ad valorem del 10 % sobre el precio de venta al público, el impuesto específico por cajetilla de 20 unidades y el IVA del 19 % incluido en el precio. El específico vigente para 2027 ($4.846) se proyecta con IPC 5 % + 4 pp; el PL fija $7.823 para 2027.</p>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>3. Precio de Venta Final</h4>
+        <div class="chart" id="g-cig-precio"></div>
+        <p class="caption"><strong>Nota:</strong> Se proyecta un incremento del 5 % (IPC) en el precio de venta al público para 2027. El ad valorem y el IVA se calculan sobre el precio de venta al público promedio proyectado. Se supone que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda. Precio por cajetilla de 20 unidades.</p>
+      </div>
+
+      <div class="cell cell-4">
+        <div id="cig-vista-cascada" hidden>
+          <h4>4. Composición del Precio</h4>
+          <div class="subtabs" role="tablist" aria-label="Escenario">
+            <button class="subtab" role="tab" data-cigsub="actual" aria-selected="true">Legislación Actual</button>
+            <button class="subtab" role="tab" data-cigsub="pl" aria-selected="false">PL Rescate Económico</button>
+          </div>
+          <div class="chart wf" id="g-cig-wf-actual"></div>
+          <div class="chart wf" id="g-cig-wf-pl" hidden></div>
+        </div>
+        <div id="cig-vista-tabla">
+        <h4>4. Tabla Resumen de Tarifas</h4>
+        <p class="subt">Impuesto al consumo de cigarrillos y picadura · Comparativo de tarifas, Proyecto de Ley 477 de 2026</p>
+        <div class="table-scroll">
+          <table class="tg" id="tabla-cig">
+            <thead>
+              <tr>
+                <th rowspan="2" class="bg-prod">Producto</th>
+                <th colspan="2" class="bg-actual">Legislación actual</th>
+                <th colspan="2" class="bg-grey">Legislación 2027</th>
+                <th colspan="2" class="bg-pl">PL Rescate Económico</th>
+                <th colspan="2" class="bg-var">Variación vs 2027</th>
+              </tr>
+              <tr>
+                <th class="bg-actual">Esp. 2026</th>
+                <th class="bg-actual">Ad val. 2026</th>
+                <th class="bg-grey">Esp. 2027</th>
+                <th class="bg-grey">Ad val. 2027</th>
+                <th class="bg-pl">Esp. 2027</th>
+                <th class="bg-pl">Ad val. 2027</th>
+                <th class="bg-var">Específico</th>
+                <th class="bg-var">Ad val.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="prod">Cigarrillos</td>
+                <td class="bg-actual">$4.446/20u</td><td class="bg-actual">10%</td>
+                <td class="bg-grey">$4.846/20u</td><td class="bg-grey">10%</td>
+                <td class="text-pl">$7.823/20u</td><td class="text-pl">10%</td>
+                <td class="var-up">+61,4%</td><td class="var-zero">0 pp</td>
+              </tr>
+              <tr>
+                <td class="prod">Picadura, rapé y chimú</td>
+                <td class="bg-actual">$354/g</td><td class="bg-actual">10%*</td>
+                <td class="bg-grey">$386/g</td><td class="bg-grey">10%*</td>
+                <td class="text-pl">$891/g</td><td class="text-pl">10%*</td>
+                <td class="var-up">+130,8%</td><td class="var-zero">0 pp</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas ordinarias vigentes en 2026, sus proyecciones a 2027 y 2028 y las del PL 477. Proyección de legislación vigente: IPC supuesto de 5% anual; actualización del específico = IPC + 4 pp (9%).</p>
+        <p class="caption tnote">*En picadura, rapé y chimú, el ad valorem del 10% se calcula sobre el impuesto específico; en cigarrillos, sobre el precio de venta al público certificado por el DANE. Variación calculada frente a cada año.</p>
+        <p class="caption tnote">El PL fija $891/g para picadura en 2027–2028 y $7.823/20u (2027) y $11.200/20u (2028) para cigarrillos. El proyecto prevé actualizar tarifas específicas con IPC + 4 pp desde 2029.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== PESTAÑA 3: OTROS PRODUCTOS =============== -->
+<section class="layout" id="p-otros-productos" role="tabpanel" aria-labelledby="t-otros" hidden>
+  <aside class="sidebar">
+    <h3>Filtros de Análisis</h3>
+    <hr>
+    <label class="field" for="sel-otro">Seleccione el Producto:</label>
+    <div class="select-wrap"><select id="sel-otro"></select></div>
+
+    <h3 class="cfg">Simulador de tarifas</h3>
+    <p class="hint">Modifique las tarifas del PL Rescate; los gráficos se recalculan al instante.</p>
+
+    <fieldset class="sim" data-g="ptc">
+      <legend>Tabaco calentado <span>PTC · 20 u (5,5 g)</span></legend>
+      <div class="sim-grid">
+        <label for="otro-ptc-esp">Específico<small>$ por 20 unidades</small></label>
+        <div class="num"><span>$</span><input type="number" id="otro-ptc-esp" data-g="ptc" data-k="esp" min="0" step="100" inputmode="decimal"></div>
+        <label for="otro-ptc-adv">Ad valorem<small>% del PVP</small></label>
+        <div class="num"><input type="number" id="otro-ptc-adv" data-g="ptc" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="otro-ptc-iva">IVA<small>incluido en el PVP</small></label>
+        <div class="num"><input type="number" id="otro-ptc-iva" data-g="ptc" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <fieldset class="sim" data-g="sean">
+      <legend>Vapeadores <span>SEAN · 4,5 ml</span></legend>
+      <div class="sim-grid">
+        <label for="otro-sean-esp">Específico<small>$ por unidad de 4,5 ml</small></label>
+        <div class="num"><span>$</span><input type="number" id="otro-sean-esp" data-g="sean" data-k="esp" min="0" step="100" inputmode="decimal"></div>
+        <label for="otro-sean-adv">Ad valorem<small>% del PVP</small></label>
+        <div class="num"><input type="number" id="otro-sean-adv" data-g="sean" data-k="adv" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+        <label for="otro-sean-iva">IVA<small>incluido en el PVP</small></label>
+        <div class="num"><input type="number" id="otro-sean-iva" data-g="sean" data-k="iva" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
+      </div>
+    </fieldset>
+
+    <button type="button" class="btn-reset" id="otro-reset" disabled>Restablecer tarifas del PL</button>
+
+    <h3 class="cfg">Configuración del Modelo</h3>
+    <label class="check"><input type="checkbox" id="otro-chk-pvp" checked disabled> PVP promedio proyectado 2027</label>
+    <label class="check"><input type="checkbox" id="otro-chk-traslado" checked disabled> Traslado 100% al consumidor</label>
+
+    <p class="caption"><strong>Nota general:</strong> Los resultados corresponden a un ejercicio ilustrativo con productos representativos y no constituyen estimaciones representativas del mercado nacional de estos productos.</p>
+    <hr class="sep">
+  </aside>
+
+  <div class="main">
+    <h2>Análisis del Proyecto de Ley de Rescate Económico en Otros Productos</h2>
+    <hr>
+    <div class="sim-banner" id="otro-banner" hidden>
+      <span class="estado">Escenario simulado</span>
+      <p>Los valores del PL Rescate en los gráficos usan las tarifas modificadas en el simulador: <span id="otro-resumen"></span>. La tabla y las notas describen el texto original del PL.</p>
+      <button type="button" class="btn-reset" id="otro-reset-2">Restablecer</button>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>1. Presión Fiscal (%)</h4>
+        <div class="chart" id="g-otro-presion"></div>
+        <p class="caption"><strong>Notas:</strong> La presión fiscal representa el total de impuestos (ad valorem, específico e IVA) como porcentaje del precio de venta al público promedio proyectado para 2027. Tabaco calentado: presentación de 20 unidades (5,5 g) con precio certificado por el DANE. Vapeadores: marca representativa de 4,5 ml. En la legislación vigente solo se considera el IVA, ya que el PTC no está expresamente gravado y los sistemas SEAN no tienen tarifa específica vigente. El IVA del 19 % se aplica sobre el precio antes de IVA; como el precio de venta al público ya lo incluye, su participación en ese precio es de 19/119 = 16 %.</p>
+      </div>
+      <div class="cell">
+        <h4>2. Total de Impuestos por Unidad</h4>
+        <div class="chart" id="g-otro-impuestos"></div>
+        <p class="caption"><strong>Nota:</strong> Incluye el ad valorem sobre el precio de venta al público (10 % en tabaco calentado y 30 % en vapeadores), el impuesto específico y el IVA del 19 % incluido en el precio. Tabaco calentado por paquete de 20 unidades; vapeadores por unidad de 4,5 ml.</p>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <h4>3. Precio de Venta Final</h4>
+        <div class="chart" id="g-otro-precio"></div>
+        <p class="caption"><strong>Nota:</strong> El ad valorem y el IVA se calculan sobre el precio de venta al público promedio proyectado para 2027. Se supone que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda.</p>
+      </div>
+
+      <div class="cell cell-4">
+        <div id="otro-vista-cascada" hidden>
+          <h4>4. Composición del Precio</h4>
+          <div class="subtabs" role="tablist" aria-label="Escenario">
+            <button class="subtab" role="tab" data-otrosub="actual" aria-selected="true">Legislación Actual</button>
+            <button class="subtab" role="tab" data-otrosub="pl" aria-selected="false">PL Rescate Económico</button>
+          </div>
+          <div class="chart wf" id="g-otro-wf-actual"></div>
+          <div class="chart wf" id="g-otro-wf-pl" hidden></div>
+        </div>
+        <div id="otro-vista-tabla">
+          <h4>4. Tabla Resumen de Tarifas</h4>
+          <div class="table-scroll">
+            <table class="tg">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="bg-prod">Producto</th>
+                  <th colspan="2" class="bg-actual">Legislación actual</th>
+                  <th colspan="2" class="bg-grey">Legislación 2027</th>
+                  <th colspan="2" class="bg-pl">PL Rescate Económico</th>
+                  <th colspan="2" class="bg-var">Variación vs. legislación vigente</th>
+                </tr>
+                <tr>
+                  <th class="bg-actual">Esp. 2026</th>
+                  <th class="bg-actual">Ad val. 2026</th>
+                  <th class="bg-grey">Esp. 2027</th>
+                  <th class="bg-grey">Ad val. 2027</th>
+                  <th class="bg-pl">Esp. 2027</th>
+                  <th class="bg-pl">Ad val. 2027</th>
+                  <th class="bg-var">Específico</th>
+                  <th class="bg-var">Ad val.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="prod">Tabaco calentado (PTC)</td>
+                  <td class="bg-actual">N/A</td><td class="bg-actual">N/A</td>
+                  <td class="bg-grey">N/A</td><td class="bg-grey">N/A</td>
+                  <td class="text-pl">$7.823/20 u</td><td class="text-pl">10%</td>
+                  <td class="var-new">Nueva tarifa</td><td class="var-new">Nuevo gravamen</td>
+                </tr>
+                <tr>
+                  <td class="prod">Soluciones con nicotina (SEAN)</td>
+                  <td class="bg-actual">N/A</td><td class="bg-actual">N/A</td>
+                  <td class="bg-grey">N/A</td><td class="bg-grey">N/A</td>
+                  <td class="text-pl">$1.000/ml</td><td class="text-pl">30%</td>
+                  <td class="var-new">Nueva tarifa</td><td class="var-new">Nuevo gravamen</td>
+                </tr>
+                <tr>
+                  <td class="prod">Soluciones sin nicotina (SSSN)</td>
+                  <td class="bg-actual">N/A</td><td class="bg-actual">N/A</td>
+                  <td class="bg-grey">N/A</td><td class="bg-grey">N/A</td>
+                  <td class="text-pl">$1.000/ml</td><td class="text-pl">30%</td>
+                  <td class="var-new">Nueva tarifa</td><td class="var-new">Nuevo gravamen</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption tnote"><strong>Nota:</strong> Se comparan las tarifas propuestas para 2027 y 2028 con la legislación ordinaria. El PTC no está expresamente gravado y los sistemas SEAN y SSSN no tienen tarifa específica vigente por mililitro. Tarifas específicas propuestas para 2028: PTC $11.200/20 u; SEAN y SSSN $2.000/ml, con el mismo ad valorem.</p>
+          <p class="caption tnote">Los líquidos incluidos en vapeadores desechables o recargables se clasifican según contengan nicotina (SEAN) o no (SSSN); no constituyen una cuarta tarifa diferente.</p>
+          <p class="caption tnote">Variación del específico propuesto entre 2027 y 2028: PTC +43,2%; SEAN y SSSN +100%. El ad valorem no cambia.</p>
+          <p class="caption tnote">El proyecto prevé actualización del específico por IPC + 4 puntos porcentuales desde 2029. Los productos de nicotina oral sólidos (PNO) no tienen una tarifa autónoma claramente expresada en gramos o unidades en estas disposiciones.</p>
+          <p class="caption tnote">El PL 477 de 2026 no establece expresamente una tarifa específica por gramo para los productos de nicotina oral (PNO), a diferencia de las propuestas del PL 136 de 2025 Cámara / 243 de 2026 Senado. Aunque el proyecto utiliza la categoría general de derivados, sucedáneos o imitadores, la tarifa específica de esta categoría está expresada en mililitros. Por tanto, debe revisarse la aplicación del impuesto a los PNO sólidos, cuya comercialización se realiza en unidades o gramos y no en mililitros. Tampoco se identifica una tarifa específica independiente para los dispositivos electrónicos sin contenido líquido.</p>
+          <p class="caption tnote"><strong>Fuente:</strong> PL 477 de 2026 Cámara, artículos 29 a 32 (proyecto en trámite); Forvis Mazars.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script>
+(function () {
+  // ---------------------------------------------------------
+  // Datos: hoja "Datos_Dashboard" de Base_Datos_Tributaria_Licores.xlsx
+  // ---------------------------------------------------------
+  const COLS = ['Categoría','Producto','PCD_2026','Precio_Base_2027','Base_Gravable_Cerveza','Grados','Volumen_ml','Actual_AdValorem_Tasa','Actual_AdValorem_Valor','Actual_Especifico_Valor','Actual_IVA_Valor','Actual_Total_Impuestos','Actual_Precio_Final','Actual_Presion_Fiscal','PL_AdValorem_Tasa','PL_AdValorem_Valor','PL_Especifico_Valor','PL_IVA_Valor','PL_Total_Impuestos','PL_Precio_Final','PL_Presion_Fiscal','Incremento_Carga_Tributaria'];
+  const ROWS = [
+    ['Aguardiente','Aguardiente Con Agave Marca La Paloma',20772,21811,0,25,750,0.25,5453,9450,1091,15993,37804,0.42,0.35,7634,18750,4144,30528,52338,0.58,0.91],
+    ['Vino','Vino Tinto Cabernet Sauvignon Marca Staphyle',44046,46248,0,13,750,0.2,9250,3315,2312,14877,61125,0.24,0.35,16187,9750,8787,34724,80972,0.43,1.33],
+    ['Ron','Ron 8 Años Marca La Heroica',59089,62043,0,40,750,0.25,15511,15120,3102,33733,95776,0.35,0.35,21715,30000,11788,63503,125547,0.51,0.88],
+    ['Aperitivo','Aperitivo Sabor A Piña Colada Marca Reina Blanca',15029,15780,0,15,750,0.2,3156,3825,789,7770,23551,0.33,0.35,5523,11250,2998,19771,35552,0.56,1.54],
+    ['Whiskey','Whisky Scotch Escoces Johnnie Walker Blue Label 40°',93340,98007,0,40,750,0.25,24502,15120,4900,44522,142529,0.31,0.35,34302,30000,18621,82924,180931,0.46,0.86],
+    ['Cerveza','Cerveza (Genérica/Promedio)',3326,3492,920,4.5,330,0.48,442,0,664,1105,4597,0.24,0.1,349,1485,664,2498,5990,0.42,1.26]
+  ];
+  const df = ROWS.map(r => Object.fromEntries(COLS.map((c, i) => [c, r[i]])));
+
+  const AZUL = '#232144', ACTUAL = '#232144', ARENA = '#3a86a6';
+  const FONT = '"Source Sans 3", "Source Sans Pro", system-ui, sans-serif';
+  const peso = x => '$' + Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const pct = x => Math.round(x * 100) + '%';
+  const maxOf = (rows, ...ks) => Math.max(...rows.flatMap(d => ks.map(k => d[k]))) || 1;
+
+  // ---------------------------------------------------------
+  // Simulador: tarifas del PL Rescate por grupo
+  // Fórmula (igual al Excel): base 2027 = PCD 2026 × 1,05
+  //   Ad valorem = base × tasa · Específico = tarifa × grados · IVA = base × tasa
+  // ---------------------------------------------------------
+  const PL_ORIGINAL = {
+    licores: { esp: 750, adv: 35, iva: 19 },
+    vinos:   { esp: 750, adv: 35, iva: 19 },
+    cerveza: { esp: 330, adv: 10, iva: 19 }
+  };
+  const GRUPO = { Aguardiente: 'licores', Ron: 'licores', Whiskey: 'licores', Vino: 'vinos', Aperitivo: 'vinos', Cerveza: 'cerveza' };
+  const NOMBRE_GRUPO = { licores: 'Licores', vinos: 'Vinos y aperitivos', cerveza: 'Cervezas' };
+  const PARAMS = JSON.parse(JSON.stringify(PL_ORIGINAL));
+
+  function calcPL(d) {
+    const p = PARAMS[GRUPO[d['Categoría']]];
+    const base = d['PCD_2026'] * 1.05;
+    const adv = base * p.adv / 100, esp = p.esp * d['Grados'], iva = base * p.iva / 100;
+    const tot = adv + esp + iva, fin = base + tot;
+    return Object.assign({}, d, {
+      Precio_Base_2027: base, PL_AdValorem_Tasa: p.adv / 100,
+      PL_AdValorem_Valor: adv, PL_Especifico_Valor: esp, PL_IVA_Valor: iva,
+      PL_Total_Impuestos: tot, PL_Precio_Final: fin, PL_Presion_Fiscal: fin ? tot / fin : 0
+    });
+  }
+  let datos = df.map(calcPL);
+  const esSimulado = () => Object.keys(PL_ORIGINAL).some(g => ['esp', 'adv', 'iva'].some(k => PARAMS[g][k] !== PL_ORIGINAL[g][k]));
+
+  const num = (x, dec) => {
+    const r = Math.round(x * Math.pow(10, dec)) / Math.pow(10, dec);
+    const [e, f] = Math.abs(r).toFixed(dec).split('.');
+    const s = e.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (f && +f ? ',' + f.replace(/0+$/, '') : '');
+    return (r < 0 ? '-' : '') + s;
+  };
+
+  // Tabla resumen: columnas del PL y variaciones vs 2027
+  const FILAS_TABLA = [
+    { g: 'licores', esp27: 378, adv27: 25 },
+    { g: 'vinos', esp27: 255, adv27: 20 },
+    { g: 'cerveza', esp27: null, adv27: 48 },
+    { g: 'cerveza', esp27: null, adv27: 20 }
+  ];
+  function setVar(td, txt, cls) { td.textContent = txt; td.className = cls; }
+  function actualizarTabla() {
+    const filas = document.querySelectorAll('#vista-tabla tbody tr');
+    FILAS_TABLA.forEach((f, i) => {
+      const c = filas[i].cells, p = PARAMS[f.g];
+      c[5].textContent = '$' + num(p.esp, 2) + '/gr';
+      c[6].textContent = num(p.adv, 2) + '%';
+      if (f.esp27 === null) setVar(c[7], p.esp > 0 ? 'Nueva tarifa' : 'Sin tarifa', 'var-new');
+      else {
+        const v = (p.esp / f.esp27 - 1) * 100, t = num(v, 1);
+        setVar(c[7], (v > 0.05 ? '+' : '') + t + '%', Math.abs(v) < 0.05 ? 'var-zero' : v > 0 ? 'var-up' : 'var-down');
+      }
+      const pp = p.adv - f.adv27;
+      setVar(c[8], (pp > 0 ? '+' : '') + num(pp, 2) + ' pp', pp === 0 ? 'var-zero' : pp > 0 ? 'var-up' : 'var-down');
+    });
+  }
+
+  // Controles del simulador
+  const inputs = [...document.querySelectorAll('#p-licores fieldset.sim input')];
+  function pintarControles() {
+    inputs.forEach(inp => {
+      const g = inp.dataset.g, k = inp.dataset.k;
+      if (document.activeElement !== inp) inp.value = PARAMS[g][k];
+      inp.classList.toggle('cambiado', PARAMS[g][k] !== PL_ORIGINAL[g][k]);
+    });
+    document.querySelectorAll('#p-licores fieldset.sim').forEach(fs => {
+      const g = fs.dataset.g;
+      fs.classList.toggle('mod', ['esp', 'adv', 'iva'].some(k => PARAMS[g][k] !== PL_ORIGINAL[g][k]));
+    });
+    const sim = esSimulado();
+    document.getElementById('btn-reset').disabled = !sim;
+    document.getElementById('sim-banner').hidden = !sim;
+    if (sim) {
+      document.getElementById('sim-resumen').textContent = Object.keys(PARAMS)
+        .filter(g => ['esp', 'adv', 'iva'].some(k => PARAMS[g][k] !== PL_ORIGINAL[g][k]))
+        .map(g => NOMBRE_GRUPO[g] + ' $' + num(PARAMS[g].esp, 2) + '/gr, ad valorem ' + num(PARAMS[g].adv, 2) + '%, IVA ' + num(PARAMS[g].iva, 2) + '%')
+        .join(' · ');
+    }
+  }
+  const CONFIG = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d'] };
+
+  // ---------------------------------------------------------
+  // Selector de producto
+  // ---------------------------------------------------------
+  const sel = document.getElementById('sel-producto');
+  ['Todos los productos', ...df.map(d => d['Categoría'])].forEach(o => {
+    const opt = document.createElement('option'); opt.value = o; opt.textContent = o; sel.appendChild(opt);
+  });
+
+  function barLayout(yaxis) {
+    return {
+      barmode: 'group', plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)',
+      height: 300, margin: { t: 20, b: 0, l: 0, r: 0, pad: 0 },
+      font: { family: FONT, color: AZUL },
+      legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1, font: { color: AZUL } },
+      yaxis: Object.assign({ showgrid: true, gridcolor: '#E5E5E5', zeroline: false, automargin: true }, yaxis),
+      xaxis: { tickfont: { color: AZUL }, automargin: true },
+      hoverlabel: { font: { family: FONT } }
+    };
+  }
+
+  function barras(el, plot, kAct, kPl, fmt, yaxis, nombrePL, nombreAct) {
+    const x = plot.map(d => d['Categoría']);
+    const ancho = document.getElementById(el).clientWidth || 600;
+    const TXT = ancho < 420 ? 10 : (fmt === pct ? 13 : 11);
+    Plotly.react(el, [
+      { type: 'bar', x, y: plot.map(d => d[kAct]), name: nombreAct || 'Actual', marker: { color: ACTUAL },
+        text: plot.map(d => fmt(d[kAct])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
+        textfont: { size: TXT, color: AZUL } },
+      { type: 'bar', x, y: plot.map(d => d[kPl]), name: nombrePL, marker: { color: ARENA },
+        text: plot.map(d => fmt(d[kPl])), textposition: 'outside', cliponaxis: false, constraintext: 'none',
+        textfont: { size: TXT, color: ARENA, weight: 'bold' } }
+    ], barLayout(yaxis), CONFIG);
+  }
+
+  function cascada(el, p, pre, totalColor) {
+    const y = [p['Precio_Base_2027'], p[pre + '_AdValorem_Valor'], p[pre + '_Especifico_Valor'], p[pre + '_IVA_Valor'], p[pre + '_Precio_Final']];
+    Plotly.react(el, [{
+      type: 'waterfall', name: pre === 'Actual' ? 'Actual' : 'PL Rescate', orientation: 'v',
+      measure: ['relative', 'relative', 'relative', 'relative', 'total'],
+      x: ['Base', 'Ad Val.', 'Espec.', 'IVA', 'Final'], y,
+      textposition: 'outside', text: y.map(peso), cliponaxis: false, constraintext: 'none',
+      textfont: { size: 12, color: AZUL },
+      connector: { line: { color: '#e0e0e0' } },
+      decreasing: { marker: { color: ACTUAL } }, increasing: { marker: { color: ACTUAL } }, totals: { marker: { color: totalColor } }
+    }], {
+      plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)',
+      height: 250, margin: { t: 20, b: 0, l: 0, r: 0 },
+      font: { family: FONT, color: AZUL },
+      yaxis: { showticklabels: false, gridcolor: '#E5E5E5', zeroline: false, range: [0, p[pre + '_Precio_Final'] * 1.18] },
+      xaxis: { tickfont: { color: AZUL }, automargin: true },
+      showlegend: false
+    }, CONFIG);
+  }
+
+  let subActual = 'actual';
+  function renderSub() {
+    const p = datos.find(d => d['Categoría'] === sel.value);
+    if (!p) return;
+    const a = document.getElementById('g-wf-actual'), b = document.getElementById('g-wf-pl');
+    a.hidden = subActual !== 'actual'; b.hidden = subActual !== 'pl';
+    document.querySelectorAll('#p-licores .subtab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.sub === subActual)));
+    if (subActual === 'actual') cascada(a, p, 'Actual', ACTUAL); else cascada(b, p, 'PL', ARENA);
+  }
+
+  function render() {
+    const s = sel.value;
+    datos = df.map(calcPL);
+    const plot = s !== 'Todos los productos' ? datos.filter(d => d['Categoría'] === s) : datos.slice();
+    const nombrePL = esSimulado() ? 'PL Rescate (simulado)' : 'PL Rescate';
+
+    barras('g-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct,
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(datos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nombrePL);
+    barras('g-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
+      { showticklabels: false, range: [0, maxOf(datos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nombrePL);
+    barras('g-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
+      { showticklabels: false, range: [0, maxOf(datos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nombrePL);
+    actualizarTabla();
+    pintarControles();
+
+    const unProducto = s !== 'Todos los productos';
+    document.getElementById('vista-cascada').hidden = !unProducto;
+    document.getElementById('vista-tabla').hidden = unProducto;
+    if (unProducto) renderSub();
+  }
+
+  sel.addEventListener('change', render);
+
+  inputs.forEach(inp => {
+    inp.addEventListener('input', () => {
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      if (!isFinite(v) || v < 0) return;
+      PARAMS[inp.dataset.g][inp.dataset.k] = v;
+      render();
+    });
+    inp.addEventListener('blur', pintarControles);
+  });
+  function restablecer() {
+    Object.keys(PL_ORIGINAL).forEach(g => Object.assign(PARAMS[g], PL_ORIGINAL[g]));
+    inputs.forEach(inp => { inp.value = PARAMS[inp.dataset.g][inp.dataset.k]; });
+    render();
+  }
+  document.getElementById('btn-reset').addEventListener('click', restablecer);
+  document.getElementById('btn-reset-2').addEventListener('click', restablecer);
+  pintarControles();
+  document.querySelectorAll('#p-licores .subtab').forEach(t => t.addEventListener('click', () => { subActual = t.dataset.sub; renderSub(); }));
+
+  // =========================================================
+  // CIGARRILLOS — datos por gama (PVP DANE, Resolución 0800 de 2026)
+  // Ad valorem = PVP × tasa · IVA incluido en el PVP = PVP × iva/(100+iva) · Específico por cajetilla
+  // =========================================================
+  const CIG = [
+    ['Gama baja', 7594, 7974, 797, 4846, 1273, 6917, 797, 7823, 1273, 9893],
+    ['Gama media', 9437, 9908, 991, 4846, 1582, 7419, 991, 7823, 1582, 10396],
+    ['Gama alta', 12608, 13238, 1324, 4846, 2114, 8284, 1324, 7823, 2114, 11260]
+  ].map(r => ({ 'Categoría': r[0], pvp26: r[1], pvp27: r[2], advV: r[3], espV: r[4], ivaV: r[5], totV: r[6], advP0: r[7], espP0: r[8], ivaP0: r[9], totP0: r[10] }));
+  const CIG_ORIGINAL = { esp: 7823, adv: 10, iva: 19 };
+  const CIGP = Object.assign({}, CIG_ORIGINAL);
+  const cigSim = () => ['esp', 'adv', 'iva'].some(k => CIGP[k] !== CIG_ORIGINAL[k]);
+
+  function calcCig(d) {
+    const pvp = d.pvp26 * 1.05;
+    const adv = CIGP.adv === CIG_ORIGINAL.adv ? d.advP0 : pvp * CIGP.adv / 100;
+    const iva = CIGP.iva === CIG_ORIGINAL.iva ? d.ivaP0 : pvp * CIGP.iva / (100 + CIGP.iva);
+    const esp = CIGP.esp;
+    const tot = cigSim() ? adv + esp + iva : d.totP0;
+    // Precio final: PVP 2027 proyectado + 100 % del incremento tributario
+    const finP = d.pvp27 + (tot - d.totV);
+    return Object.assign({}, d, {
+      Precio_Base_2027: d.pvp27 - d.totV,
+      Actual_AdValorem_Valor: d.advV, Actual_Especifico_Valor: d.espV, Actual_IVA_Valor: d.ivaV,
+      Actual_Total_Impuestos: d.totV, Actual_Precio_Final: d.pvp27, Actual_Presion_Fiscal: d.totV / d.pvp27,
+      PL_AdValorem_Valor: adv, PL_Especifico_Valor: esp, PL_IVA_Valor: iva,
+      // Presión fiscal en cigarrillos: impuestos / PVP promedio proyectado 2027 (igual que la tabla de origen)
+      PL_Total_Impuestos: tot, PL_Precio_Final: finP, PL_Presion_Fiscal: tot / d.pvp27
+    });
+  }
+  let cigDatos = CIG.map(calcCig);
+
+  const selGama = document.getElementById('sel-gama');
+  ['Todas las gamas', ...CIG.map(d => d['Categoría'])].forEach(o => {
+    const opt = document.createElement('option'); opt.value = o; opt.textContent = o; selGama.appendChild(opt);
+  });
+
+  let cigSub = 'actual';
+  function renderCigSub() {
+    const p = cigDatos.find(d => d['Categoría'] === selGama.value);
+    if (!p) return;
+    const a = document.getElementById('g-cig-wf-actual'), b = document.getElementById('g-cig-wf-pl');
+    a.hidden = cigSub !== 'actual'; b.hidden = cigSub !== 'pl';
+    document.querySelectorAll('#p-cigarrillos .subtab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.cigsub === cigSub)));
+    if (cigSub === 'actual') cascada(a, p, 'Actual', ACTUAL); else cascada(b, p, 'PL', ARENA);
+  }
+
+  function tablaCig() {
+    const c = document.querySelectorAll('#tabla-cig tbody tr')[0].cells;
+    c[5].textContent = '$' + num(CIGP.esp, 2) + '/20u';
+    c[6].textContent = num(CIGP.adv, 2) + '%';
+    const v = (CIGP.esp / 4846 - 1) * 100;
+    setVar(c[7], (v > 0.05 ? '+' : '') + num(v, 1) + '%', Math.abs(v) < 0.05 ? 'var-zero' : v > 0 ? 'var-up' : 'var-down');
+    const pp = CIGP.adv - 10;
+    setVar(c[8], (pp > 0 ? '+' : '') + num(pp, 2) + ' pp', pp === 0 ? 'var-zero' : pp > 0 ? 'var-up' : 'var-down');
+  }
+
+  const cigInputs = [...document.querySelectorAll('#fs-cig input')];
+  function controlesCig() {
+    cigInputs.forEach(inp => {
+      const k = inp.dataset.k;
+      if (document.activeElement !== inp) inp.value = CIGP[k];
+      inp.classList.toggle('cambiado', CIGP[k] !== CIG_ORIGINAL[k]);
+    });
+    const sim = cigSim();
+    document.getElementById('fs-cig').classList.toggle('mod', sim);
+    document.getElementById('cig-reset').disabled = !sim;
+    document.getElementById('cig-banner').hidden = !sim;
+    if (sim) {
+      document.getElementById('cig-resumen').textContent = 'Cigarrillos $' + num(CIGP.esp, 2) + '/20u, ad valorem ' + num(CIGP.adv, 2) + '%, IVA ' + num(CIGP.iva, 2) + '%';
+    }
+  }
+
+  function renderCig() {
+    cigDatos = CIG.map(calcCig);
+    const s = selGama.value;
+    const plot = s !== 'Todas las gamas' ? cigDatos.filter(d => d['Categoría'] === s) : cigDatos.slice();
+    const nPL = cigSim() ? 'PL Rescate (simulado)' : 'PL Rescate';
+    barras('g-cig-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct,
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(cigDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL);
+    barras('g-cig-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
+      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL);
+    barras('g-cig-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
+      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL);
+    const una = s !== 'Todas las gamas';
+    document.getElementById('cig-vista-cascada').hidden = !una;
+    document.getElementById('cig-vista-tabla').hidden = una;
+    if (una) renderCigSub();
+    tablaCig();
+    controlesCig();
+  }
+
+  selGama.addEventListener('change', renderCig);
+  document.querySelectorAll('#p-cigarrillos .subtab').forEach(t => t.addEventListener('click', () => { cigSub = t.dataset.cigsub; renderCigSub(); }));
+  cigInputs.forEach(inp => {
+    inp.addEventListener('input', () => {
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      if (!isFinite(v) || v < 0) return;
+      CIGP[inp.dataset.k] = v;
+      renderCig();
+    });
+    inp.addEventListener('blur', controlesCig);
+  });
+  function restablecerCig() {
+    Object.assign(CIGP, CIG_ORIGINAL);
+    cigInputs.forEach(inp => { inp.value = CIGP[inp.dataset.k]; });
+    renderCig();
+  }
+  document.getElementById('cig-reset').addEventListener('click', restablecerCig);
+  document.getElementById('cig-reset-2').addEventListener('click', restablecerCig);
+  controlesCig();
+
+  // =========================================================
+  // OTROS PRODUCTOS — tabaco calentado (PTC) y vapeadores (SEAN)
+  // Actual: solo IVA (sin impuesto al consumo vigente). PL: ad valorem + específico + IVA sobre el PVP 2027
+  // =========================================================
+  const OTROS = [
+    { 'Categoría': 'Tabaco calentado', g: 'ptc', pvp27: 10166, advP0: 1017, espP0: 7823, ivaP0: 1623, totP0: 10463, ivaV: 1623 },
+    { 'Categoría': 'Vapeadores', g: 'sean', pvp27: 31500, advP0: 9450, espP0: 9000, ivaP0: 5029, totP0: 23479, ivaV: 5029 }
+  ];
+  const OTROS_ORIGINAL = { ptc: { esp: 7823, adv: 10, iva: 19 }, sean: { esp: 9000, adv: 30, iva: 19 } };
+  const NOMBRE_OTRO = { ptc: 'Tabaco calentado', sean: 'Vapeadores' };
+  const OP = JSON.parse(JSON.stringify(OTROS_ORIGINAL));
+  const otroMod = g => ['esp', 'adv', 'iva'].some(k => OP[g][k] !== OTROS_ORIGINAL[g][k]);
+  const otroSim = () => Object.keys(OP).some(otroMod);
+  const pct1 = x => num(x * 100, 1) + '%';
+
+  function calcOtro(d) {
+    const p = OP[d.g], o = OTROS_ORIGINAL[d.g], pvp = d.pvp27;
+    const adv = p.adv === o.adv ? d.advP0 : pvp * p.adv / 100;
+    const iva = p.iva === o.iva ? d.ivaP0 : pvp * p.iva / (100 + p.iva);
+    const esp = p.esp;
+    const tot = otroMod(d.g) ? adv + esp + iva : d.totP0;
+    const totV = d.ivaV;
+    return Object.assign({}, d, {
+      Precio_Base_2027: pvp - d.ivaV,
+      Actual_AdValorem_Valor: 0, Actual_Especifico_Valor: 0, Actual_IVA_Valor: d.ivaV,
+      Actual_Total_Impuestos: totV, Actual_Precio_Final: pvp, Actual_Presion_Fiscal: totV / pvp,
+      PL_AdValorem_Valor: adv, PL_Especifico_Valor: esp, PL_IVA_Valor: iva,
+      PL_Total_Impuestos: tot, PL_Precio_Final: pvp + (tot - totV), PL_Presion_Fiscal: tot / pvp
+    });
+  }
+  let otroDatos = OTROS.map(calcOtro);
+
+  const selOtro = document.getElementById('sel-otro');
+  ['Todos los productos', ...OTROS.map(d => d['Categoría'])].forEach(o => {
+    const opt = document.createElement('option'); opt.value = o; opt.textContent = o; selOtro.appendChild(opt);
+  });
+
+  let otroSub = 'actual';
+  function renderOtroSub() {
+    const p = otroDatos.find(d => d['Categoría'] === selOtro.value);
+    if (!p) return;
+    const a = document.getElementById('g-otro-wf-actual'), b = document.getElementById('g-otro-wf-pl');
+    a.hidden = otroSub !== 'actual'; b.hidden = otroSub !== 'pl';
+    document.querySelectorAll('#p-otros-productos .subtab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.otrosub === otroSub)));
+    if (otroSub === 'actual') cascada(a, p, 'Actual', ACTUAL); else cascada(b, p, 'PL', ARENA);
+  }
+
+  const otroInputs = [...document.querySelectorAll('#p-otros-productos fieldset.sim input')];
+  function controlesOtro() {
+    otroInputs.forEach(inp => {
+      const g = inp.dataset.g, k = inp.dataset.k;
+      if (document.activeElement !== inp) inp.value = OP[g][k];
+      inp.classList.toggle('cambiado', OP[g][k] !== OTROS_ORIGINAL[g][k]);
+    });
+    document.querySelectorAll('#p-otros-productos fieldset.sim').forEach(fs => fs.classList.toggle('mod', otroMod(fs.dataset.g)));
+    const sim = otroSim();
+    document.getElementById('otro-reset').disabled = !sim;
+    document.getElementById('otro-banner').hidden = !sim;
+    if (sim) {
+      document.getElementById('otro-resumen').textContent = Object.keys(OP).filter(otroMod)
+        .map(g => NOMBRE_OTRO[g] + ' específico $' + num(OP[g].esp, 2) + ', ad valorem ' + num(OP[g].adv, 2) + '%, IVA ' + num(OP[g].iva, 2) + '%')
+        .join(' · ');
+    }
+  }
+
+  function renderOtro() {
+    otroDatos = OTROS.map(calcOtro);
+    const s = selOtro.value;
+    const plot = s !== 'Todos los productos' ? otroDatos.filter(d => d['Categoría'] === s) : otroDatos.slice();
+    const nPL = otroSim() ? 'PL Rescate (simulado)' : 'PL Rescate';
+    barras('g-otro-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct1,
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(otroDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL);
+    barras('g-otro-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
+      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL);
+    barras('g-otro-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
+      { showticklabels: false, range: [0, maxOf(otroDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL);
+    const uno = s !== 'Todos los productos';
+    document.getElementById('otro-vista-cascada').hidden = !uno;
+    document.getElementById('otro-vista-tabla').hidden = uno;
+    if (uno) renderOtroSub();
+    controlesOtro();
+  }
+
+  selOtro.addEventListener('change', renderOtro);
+  document.querySelectorAll('#p-otros-productos .subtab').forEach(t => t.addEventListener('click', () => { otroSub = t.dataset.otrosub; renderOtroSub(); }));
+  otroInputs.forEach(inp => {
+    inp.addEventListener('input', () => {
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      if (!isFinite(v) || v < 0) return;
+      OP[inp.dataset.g][inp.dataset.k] = v;
+      renderOtro();
+    });
+    inp.addEventListener('blur', controlesOtro);
+  });
+  function restablecerOtro() {
+    Object.keys(OTROS_ORIGINAL).forEach(g => Object.assign(OP[g], OTROS_ORIGINAL[g]));
+    otroInputs.forEach(inp => { inp.value = OP[inp.dataset.g][inp.dataset.k]; });
+    renderOtro();
+  }
+  document.getElementById('otro-reset').addEventListener('click', restablecerOtro);
+  document.getElementById('otro-reset-2').addEventListener('click', restablecerOtro);
+  controlesOtro();
+
+  // ---------------------------------------------------------
+  // Pestañas principales (con enlace directo vía #)
+  // ---------------------------------------------------------
+  const TABS = ['licores', 'cigarrillos', 'otros-productos'];
+  let pintado = false, cigPintado = false, otroPintado = false;
+  function showTab(name) {
+    if (!TABS.includes(name)) name = 'licores';
+    document.querySelectorAll('.tab').forEach(t => {
+      const on = t.dataset.tab === name;
+      t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1;
+    });
+    TABS.forEach(n => { document.getElementById('p-' + n).hidden = n !== name; });
+    if (name === 'licores') {
+      if (!pintado) { render(); pintado = true; }
+      else document.querySelectorAll('#p-licores .js-plotly-plot').forEach(g => Plotly.Plots.resize(g));
+    }
+    if (name === 'cigarrillos') {
+      if (!cigPintado) { renderCig(); cigPintado = true; }
+      else document.querySelectorAll('#p-cigarrillos .js-plotly-plot').forEach(g => Plotly.Plots.resize(g));
+    }
+    if (name === 'otros-productos') {
+      if (!otroPintado) { renderOtro(); otroPintado = true; }
+      else document.querySelectorAll('#p-otros-productos .js-plotly-plot').forEach(g => Plotly.Plots.resize(g));
+    }
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    const name = t.dataset.tab;
+    if (location.hash !== '#' + name) { try { history.replaceState(null, '', '#' + name); } catch (e) {} }
+    showTab(name);
+  }));
+  document.querySelector('.tabs').addEventListener('keydown', e => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const btns = [...document.querySelectorAll('.tab')];
+    const i = btns.findIndex(b => b.getAttribute('aria-selected') === 'true');
+    const next = btns[(i + (e.key === 'ArrowRight' ? 1 : btns.length - 1)) % btns.length];
+    next.focus(); next.click();
+  });
+  window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+  showTab(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
