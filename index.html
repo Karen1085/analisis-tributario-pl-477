@@ -358,6 +358,31 @@
   details.supuestos { margin-top: 1rem; }
   details.supuestos > summary { font-size: 0.95rem; font-weight: 600; color: var(--azul); }
   details.supuestos > :not(summary) { margin-top: 0.5rem; }
+
+  /* Panel lateral con más aire: secciones separadas y grupos del simulador como tarjetas */
+  .sidebar { padding-block: 1.5rem 2rem; }
+  .sidebar h3 { padding-bottom: 0.5rem; }
+  .sidebar hr { margin-bottom: 1.1rem; }
+  label.field { margin-bottom: 0.5rem; }
+  .sidebar h3.cfg { margin-top: 1.75rem; padding-bottom: 0.35rem; }
+  .hint { margin-bottom: 1rem; line-height: 1.45; }
+  fieldset.sim { margin: 0 0 0.75rem; padding: 0.65rem 0.8rem; border-radius: 8px; }
+  fieldset.sim:not(.abierto) { padding-bottom: 0.65rem; }
+  fieldset.sim > legend { float: left; width: 100%; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.3; }
+  fieldset.sim > legend span { margin-top: 0.15rem; line-height: 1.3; }
+  fieldset.sim .resumen { margin-top: 0.35rem; }
+  fieldset.sim .sim-grid { clear: both; padding-top: 0.6rem; gap: 0.5rem 0.6rem; }
+  fieldset.sim:hover { border-color: #c9ccd8; }
+  .btn-reset#btn-reset, .btn-reset#cig-reset, .btn-reset#otro-reset { margin-top: 0.25rem; }
+  details.supuestos { margin-top: 1.75rem; padding-top: 1.1rem; border-top: 1px solid var(--linea); }
+  details.supuestos > summary { line-height: 1.35; }
+  .sidebar hr.sep { display: none; }
+
+  /* Indicadores repartidos a lo ancho: tantas columnas como productos */
+  .kpis { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 0.75rem; }
+  .kpi { padding: 0.55rem 0.85rem; }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
 <body>
@@ -939,6 +964,7 @@
         '<span class="pl">' + fmtP(d.PL_Presion_Fiscal) + '</span></div>' +
         '<div class="foot"><span class="chip ' + cls + '">' + (pp > 0 ? '+' : '') + num(pp, dec) + ' pp</span></div></div>';
     });
+    document.getElementById(id).style.setProperty('--n', todos.length);
     document.getElementById(id).innerHTML =
       '<p class="kpis-tit">Presión fiscal por producto · <span class="k-act">Legislación Vigente (2027)</span> → <span class="k-pl">PL 477 Rescate Económico (2027)</span></p>' + tiles.join('');
   }
