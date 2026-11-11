@@ -344,6 +344,7 @@
   .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 1.7fr); gap: 0.75rem; }
   .split.uno { grid-template-columns: minmax(0, 1fr); }
   .sub { min-width: 0; }
+  .cell > .sub-tit { margin-bottom: 0.25rem; }
   .sub-tit { margin: 0; padding-bottom: 0.2rem; border-bottom: 1px solid var(--linea); font-size: 0.74rem; font-weight: 700; color: var(--caption); text-align: center; }
 
   /* Sidebar compacto: simulador y supuestos plegables */
@@ -616,12 +617,15 @@
 
     <div class="row">
       <div class="cell">
-        <h4>1. Presión Fiscal (%)</h4>
+        <h4>1. Presión fiscal (%)</h4>
+        <p class="h-sub" id="h-cig-presion"></p>
         <div class="chart" id="g-cig-presion"></div>
         <p class="caption"><strong>Notas:</strong> La presión fiscal representa el total de impuestos (ad valorem, específico e IVA) como porcentaje del precio de venta al público promedio proyectado para 2027 en cada gama, certificado por el DANE (Resolución 0800 de 2026). Un valor superior a 100 % indica que los impuestos superarían el precio de venta proyectado. Los resultados son ilustrativos y no representan la presión fiscal de todas las marcas y presentaciones.</p>
       </div>
       <div class="cell">
-        <h4>2. Total de Impuestos por Cajetilla</h4>
+        <h4>2. Impuestos estimados por unidad de producto</h4>
+        <p class="h-sub" id="h-cig-impuestos"></p>
+        <p class="sub-tit">Cajetilla de 20 unidades</p>
         <div class="chart" id="g-cig-impuestos"></div>
         <p class="caption"><strong>Nota:</strong> Incluye el ad valorem del 10 % sobre el precio de venta al público, el impuesto específico por cajetilla de 20 unidades y el IVA del 19 % incluido en el precio. El específico vigente para 2027 ($4.846) se proyecta con IPC 5 % + 4 pp; el PL fija $7.823 para 2027.</p>
       </div>
@@ -630,7 +634,8 @@
 
     <div class="row">
       <div class="cell">
-        <h4>3. Precio de Venta Final</h4>
+        <h4>3. Precio final simulado al consumidor – 2027</h4>
+        <p class="sub-tit">Cajetilla de 20 unidades</p>
         <div class="chart" id="g-cig-precio"></div>
         <p class="caption"><strong>Nota:</strong> Se proyecta un incremento del 5 % (IPC) en el precio de venta al público para 2027. El ad valorem y el IVA se calculan sobre el precio de venta al público promedio proyectado. Se supone que el 100 % del incremento tributario se traslada al consumidor, sin considerar cambios en los márgenes de comercialización ni en la demanda. Precio por cajetilla de 20 unidades.</p>
       </div>
@@ -639,8 +644,8 @@
         <div id="cig-vista-cascada" hidden>
           <h4>4. Composición del Precio</h4>
           <div class="subtabs" role="tablist" aria-label="Escenario">
-            <button class="subtab" role="tab" data-cigsub="actual" aria-selected="true">Legislación Actual</button>
-            <button class="subtab" role="tab" data-cigsub="pl" aria-selected="false">PL Rescate Económico</button>
+            <button class="subtab" role="tab" data-cigsub="actual" aria-selected="true">Legislación Vigente (2027)</button>
+            <button class="subtab" role="tab" data-cigsub="pl" aria-selected="false">PL 477 Rescate Económico (2027)</button>
           </div>
           <div class="chart wf" id="g-cig-wf-actual"></div>
           <div class="chart wf" id="g-cig-wf-pl" hidden></div>
@@ -653,18 +658,18 @@
             <thead>
               <tr>
                 <th rowspan="2" class="bg-prod">Producto</th>
-                <th colspan="2" class="bg-actual">Legislación actual</th>
-                <th colspan="2" class="bg-grey">Legislación 2027</th>
-                <th colspan="2" class="bg-pl">PL Rescate Económico</th>
-                <th colspan="2" class="bg-var">Variación vs 2027</th>
+                <th colspan="2" class="bg-actual">Legislación Vigente (2026)</th>
+                <th colspan="2" class="bg-grey">Legislación Vigente (2027)</th>
+                <th colspan="2" class="bg-pl">PL 477 Rescate Económico (2027)</th>
+                <th colspan="2" class="bg-var">Variación</th>
               </tr>
               <tr>
-                <th class="bg-actual">Esp. 2026</th>
-                <th class="bg-actual">Ad val. 2026</th>
-                <th class="bg-grey">Esp. 2027</th>
-                <th class="bg-grey">Ad val. 2027</th>
-                <th class="bg-pl">Esp. 2027</th>
-                <th class="bg-pl">Ad val. 2027</th>
+                <th class="bg-actual">Esp.</th>
+                <th class="bg-actual">Ad val.</th>
+                <th class="bg-grey">Esp.</th>
+                <th class="bg-grey">Ad val.</th>
+                <th class="bg-pl">Esp.</th>
+                <th class="bg-pl">Ad val.</th>
                 <th class="bg-var">Esp.</th>
                 <th class="bg-var">Ad val.</th>
               </tr>
@@ -1191,13 +1196,19 @@
     cigDatos = CIG.map(calcCig);
     const s = selGama.value;
     const plot = s !== 'Todas las gamas' ? cigDatos.filter(d => d['Categoría'] === s) : cigDatos.slice();
-    const nPL = cigSim() ? 'PL Rescate (simulado)' : 'PL Rescate';
+    const nPL = 'PL 477 Rescate Económico (2027)' + (cigSim() ? ' · simulado' : '');
+    const nAct = 'Legislación Vigente (2027)';
     barras('g-cig-presion', plot, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal', pct,
-      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(cigDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL);
+      { tickformat: '.0%', tickfont: { color: AZUL }, range: [0, maxOf(cigDatos, 'Actual_Presion_Fiscal', 'PL_Presion_Fiscal') * 1.2] }, nPL, nAct);
     barras('g-cig-impuestos', plot, 'Actual_Total_Impuestos', 'PL_Total_Impuestos', peso,
-      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL);
+      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Total_Impuestos', 'PL_Total_Impuestos') * 1.2] }, nPL, nAct, { detalle: true });
     barras('g-cig-precio', plot, 'Actual_Precio_Final', 'PL_Precio_Final', peso,
-      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL);
+      { showticklabels: false, range: [0, maxOf(cigDatos, 'Actual_Precio_Final', 'PL_Precio_Final') * 1.2] }, nPL, nAct);
+    const n = plot.length, prom = f => plot.reduce((a, d) => a + f(d), 0) / n;
+    document.getElementById('h-cig-presion').textContent =
+      textoCambio(prom(d => (d.PL_Presion_Fiscal - d.Actual_Presion_Fiscal) * 100), ' puntos porcentuales', n);
+    document.getElementById('h-cig-impuestos').textContent =
+      textoCambio(prom(d => (d.PL_Total_Impuestos / d.Actual_Total_Impuestos - 1) * 100), '%', n);
     const una = s !== 'Todas las gamas';
     document.getElementById('cig-vista-cascada').hidden = !una;
     document.getElementById('cig-vista-tabla').hidden = una;
