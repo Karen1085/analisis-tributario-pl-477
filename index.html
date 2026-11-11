@@ -378,6 +378,9 @@
   details.supuestos > summary { line-height: 1.35; }
   .sidebar hr.sep { display: none; }
 
+  /* Tabla: columnas de variación sin cortes de línea */
+  .tg th.bg-var, .tg td.var-up, .tg td.var-down, .tg td.var-zero { white-space: nowrap; }
+
   /* Indicadores repartidos a lo ancho: tantas columnas como productos */
   .kpis { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 0.75rem; }
   .kpi { padding: 0.55rem 0.85rem; }
@@ -524,7 +527,7 @@
                   <th class="bg-grey">Ad val.</th>
                   <th class="bg-pl">Esp.</th>
                   <th class="bg-pl">Ad val.</th>
-                  <th class="bg-var">Específico</th>
+                  <th class="bg-var">Esp.</th>
                   <th class="bg-var">Ad val.</th>
                 </tr>
               </thead>
@@ -662,7 +665,7 @@
                 <th class="bg-grey">Ad val. 2027</th>
                 <th class="bg-pl">Esp. 2027</th>
                 <th class="bg-pl">Ad val. 2027</th>
-                <th class="bg-var">Específico</th>
+                <th class="bg-var">Esp.</th>
                 <th class="bg-var">Ad val.</th>
               </tr>
             </thead>
@@ -798,7 +801,7 @@
                   <th class="bg-grey">Ad val. 2027</th>
                   <th class="bg-pl">Esp. 2027</th>
                   <th class="bg-pl">Ad val. 2027</th>
-                  <th class="bg-var">Específico</th>
+                  <th class="bg-var">Esp.</th>
                   <th class="bg-var">Ad val.</th>
                 </tr>
               </thead>
