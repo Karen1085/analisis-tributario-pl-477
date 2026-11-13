@@ -535,30 +535,30 @@
               <tbody>
                 <tr>
                   <td class="prod">Licores</td>
-                  <td class="bg-actual">$360/gr</td><td class="bg-actual">25%</td>
-                  <td class="bg-grey">$378/gr</td><td class="bg-grey">25%</td>
-                  <td class="text-pl">$750/gr</td><td class="text-pl">35%</td>
+                  <td class="bg-actual">$360/grado</td><td class="bg-actual">25%</td>
+                  <td class="bg-grey">$378/grado</td><td class="bg-grey">25%</td>
+                  <td class="text-pl">$750/grado</td><td class="text-pl">35%</td>
                   <td class="var-up">+98,4%</td><td class="var-up">+10 pp</td>
                 </tr>
                 <tr>
                   <td class="prod">Vinos</td>
-                  <td class="bg-actual">$243/gr</td><td class="bg-actual">20%</td>
-                  <td class="bg-grey">$255/gr</td><td class="bg-grey">20%</td>
-                  <td class="text-pl">$750/gr</td><td class="text-pl">35%</td>
+                  <td class="bg-actual">$243/grado</td><td class="bg-actual">20%</td>
+                  <td class="bg-grey">$255/grado</td><td class="bg-grey">20%</td>
+                  <td class="text-pl">$750/grado</td><td class="text-pl">35%</td>
                   <td class="var-up">+194,1%</td><td class="var-up">+15 pp</td>
                 </tr>
                 <tr>
                   <td class="prod">Cervezas</td>
                   <td class="bg-actual">N/A</td><td class="bg-actual">48%*</td>
                   <td class="bg-grey">N/A</td><td class="bg-grey">48%*</td>
-                  <td class="text-pl">$330/gr</td><td class="text-pl">10%</td>
+                  <td class="text-pl">$330/grado</td><td class="text-pl">10%</td>
                   <td class="var-new">Nueva tarifa</td><td class="var-down">-38 pp</td>
                 </tr>
                 <tr>
                   <td class="prod">Refajos</td>
                   <td class="bg-actual">N/A</td><td class="bg-actual">20%*</td>
                   <td class="bg-grey">N/A</td><td class="bg-grey">20%*</td>
-                  <td class="text-pl">$330/gr</td><td class="text-pl">10%</td>
+                  <td class="text-pl">$330/grado</td><td class="text-pl">10%</td>
                   <td class="var-new">Nueva tarifa</td><td class="var-down">-10 pp</td>
                 </tr>
               </tbody>
@@ -919,7 +919,7 @@
     const filas = document.querySelectorAll('#vista-tabla tbody tr');
     FILAS_TABLA.forEach((f, i) => {
       const c = filas[i].cells, p = PARAMS[f.g];
-      c[5].textContent = '$' + num(p.esp, 2) + '/gr';
+      c[5].textContent = '$' + num(p.esp, 2) + '/grado';
       c[6].textContent = num(p.adv, 2) + '%';
       if (f.esp27 === null) setVar(c[7], p.esp > 0 ? 'Nueva tarifa' : 'Sin tarifa', 'var-new');
       else {
@@ -949,7 +949,7 @@
     if (sim) {
       document.getElementById('sim-resumen').textContent = Object.keys(PARAMS)
         .filter(g => ['esp', 'adv', 'iva'].some(k => PARAMS[g][k] !== PL_ORIGINAL[g][k]))
-        .map(g => NOMBRE_GRUPO[g] + ' $' + num(PARAMS[g].esp, 2) + '/gr, ad valorem ' + num(PARAMS[g].adv, 2) + '%, IVA ' + num(PARAMS[g].iva, 2) + '%')
+        .map(g => NOMBRE_GRUPO[g] + ' $' + num(PARAMS[g].esp, 2) + '/grado, ad valorem ' + num(PARAMS[g].adv, 2) + '%, IVA ' + num(PARAMS[g].iva, 2) + '%')
         .join(' · ');
     }
   }
